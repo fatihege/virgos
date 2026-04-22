@@ -42,6 +42,8 @@ export type FlowerConfig = {
   bouquetTargetX: number;
   bouquetTargetY: number;
   bouquetRotation: number;
+  bouquetLayer: "back" | "mid" | "front";
+  bouquetScale?: number;
   isCenterMessage?: boolean;
 };
 
@@ -114,9 +116,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 12,
     startRotation: -12,
     depth: 0.72,
-    bouquetTargetX: -14,
-    bouquetTargetY: -8,
+    bouquetTargetX: -16,
+    bouquetTargetY: -7,
     bouquetRotation: -8,
+    bouquetLayer: "back",
+    bouquetScale: 1.06,
   },
   {
     id: "f-2",
@@ -127,9 +131,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 8,
     startRotation: 9,
     depth: 0.6,
-    bouquetTargetX: -4,
-    bouquetTargetY: -20,
+    bouquetTargetX: -2,
+    bouquetTargetY: -11,
     bouquetRotation: 7,
+    bouquetLayer: "back",
+    bouquetScale: 1.18,
   },
   {
     id: "f-3",
@@ -140,9 +146,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 7,
     startRotation: -7,
     depth: 0.67,
-    bouquetTargetX: 10,
-    bouquetTargetY: -16,
+    bouquetTargetX: 14,
+    bouquetTargetY: -8,
     bouquetRotation: -5,
+    bouquetLayer: "back",
+    bouquetScale: 1.12,
   },
   {
     id: "f-4",
@@ -153,9 +161,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 21,
     startRotation: -4,
     depth: 0.82,
-    bouquetTargetX: 18,
-    bouquetTargetY: -2,
-    bouquetRotation: 10,
+    bouquetTargetX: 24,
+    bouquetTargetY: -1,
+    bouquetRotation: 8,
+    bouquetLayer: "front",
+    bouquetScale: 1.24,
   },
   {
     id: "f-5",
@@ -166,9 +176,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 45,
     startRotation: 10,
     depth: 0.75,
-    bouquetTargetX: -12,
-    bouquetTargetY: 4,
+    bouquetTargetX: -17,
+    bouquetTargetY: -1,
     bouquetRotation: -13,
+    bouquetLayer: "mid",
+    bouquetScale: 1.02,
   },
   {
     id: "f-6",
@@ -180,8 +192,10 @@ export const flowerConfigs: FlowerConfig[] = [
     startRotation: -6,
     depth: 0.7,
     bouquetTargetX: 6,
-    bouquetTargetY: -3,
-    bouquetRotation: 14,
+    bouquetTargetY: 0,
+    bouquetRotation: 11,
+    bouquetLayer: "mid",
+    bouquetScale: 0.98,
   },
   {
     id: "f-7",
@@ -192,9 +206,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 46,
     startRotation: 3,
     depth: 0.84,
-    bouquetTargetX: -18,
-    bouquetTargetY: 14,
-    bouquetRotation: -8,
+    bouquetTargetX: -24,
+    bouquetTargetY: 8,
+    bouquetRotation: -9,
+    bouquetLayer: "front",
+    bouquetScale: 1.14,
   },
   {
     id: "f-8",
@@ -206,8 +222,10 @@ export const flowerConfigs: FlowerConfig[] = [
     startRotation: -15,
     depth: 0.8,
     bouquetTargetX: 0,
-    bouquetTargetY: 6,
+    bouquetTargetY: 2,
     bouquetRotation: 3,
+    bouquetLayer: "front",
+    bouquetScale: 1.16,
     isCenterMessage: true,
   },
   {
@@ -219,9 +237,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 80,
     startRotation: 8,
     depth: 0.63,
-    bouquetTargetX: 14,
-    bouquetTargetY: 12,
-    bouquetRotation: -11,
+    bouquetTargetX: 16,
+    bouquetTargetY: 8,
+    bouquetRotation: -10,
+    bouquetLayer: "mid",
+    bouquetScale: 1.04,
   },
   {
     id: "f-10",
@@ -232,9 +252,11 @@ export const flowerConfigs: FlowerConfig[] = [
     startY: 79,
     startRotation: -9,
     depth: 0.9,
-    bouquetTargetX: -8,
-    bouquetTargetY: 18,
+    bouquetTargetX: -12,
+    bouquetTargetY: 12,
     bouquetRotation: 7,
+    bouquetLayer: "front",
+    bouquetScale: 0.84,
   },
 ];
 
