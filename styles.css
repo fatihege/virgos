@@ -336,7 +336,7 @@ select {
 
 .bouquet-hearts {
   position: absolute;
-  inset: 8% 5% 10%;
+  inset: 1% -4% 3%;
   z-index: 28;
   pointer-events: none;
   overflow: visible;
@@ -970,7 +970,7 @@ select {
   }
 
   .bouquet-hearts {
-    inset: 8% 4% 16%;
+    inset: 2% -6% 12%;
   }
 
   .flower--bouquet {
