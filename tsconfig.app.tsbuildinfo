@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/flowers.tsx","./src/main.tsx"],"version":"5.9.3"}
+{"root":["./vite.config.ts","./app.tsx","./flowers.tsx","./main.tsx"],"version":"5.9.3"}
