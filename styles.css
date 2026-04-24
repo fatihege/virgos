@@ -1227,16 +1227,17 @@ select {
 }
 
 .note-card__mini-label {
-  max-width: 10.5ch;
-  font-size: 0.46rem;
+  max-width: 11.75ch;
+  font-size: 0.44rem;
   line-height: 1.14;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(124, 88, 96, 0.82);
   text-align: center;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
   text-wrap: balance;
+  overflow: visible;
 }
 
 .note-card__heart-shell {
@@ -1650,13 +1651,16 @@ select {
   left: 50%;
   bottom: clamp(1.2rem, 4vw, 2rem);
   transform: translateX(-50%);
+  min-width: max-content;
   padding: 0.8rem 1.2rem;
   border: 0;
   border-radius: 999px;
   background: rgba(255, 251, 246, 0.72);
   color: rgba(116, 80, 86, 0.9);
+  font-size: clamp(0.76rem, 1.5vw, 0.92rem);
   letter-spacing: 0.12em;
   text-transform: lowercase;
+  white-space: nowrap;
   box-shadow:
     0 16px 34px rgba(218, 190, 167, 0.14),
     inset 0 0 0 1px rgba(255, 226, 208, 0.74);
@@ -1947,12 +1951,20 @@ select {
   }
 
   .note-card__mini-label {
-    font-size: 0.44rem;
+    max-width: 12ch;
+    font-size: 0.41rem;
+    letter-spacing: 0.1em;
   }
 
   .note-card__heart-shell {
     width: 1.12rem;
     height: 1.12rem;
+  }
+
+  .trigger-cue {
+    padding: 0.72rem 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
   }
 
   .note-card__heart {
