@@ -131,6 +131,16 @@ const motionWeightArcBias = {
 } as const;
 
 const openingStageAspectRatio = 2;
+const debugPrefix = "[bouquet-debug]";
+
+function debugLog(message: string, details?: Record<string, unknown>) {
+  if (details) {
+    console.log(debugPrefix, message, details);
+    return;
+  }
+
+  console.log(debugPrefix, message);
+}
 
 function computePerformanceProfile(
   reducedMotion: boolean,
@@ -1583,6 +1593,13 @@ export default function App() {
   const [openingStageSize, setOpeningStageSize] = useState({ width: 0, height: 0 });
   const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
   const [performanceProfile, setPerformanceProfile] = useState<PerformanceProfile>(getInitialProfile);
+  const previousPhaseRef = useRef(phase);
+  const previousInteractiveRef = useRef(isInteractive);
+  const previousNoteOpenRef = useRef(noteOpen);
+  const previousSecretNoteOpenRef = useRef(secretNoteOpen);
+  const previousReducedMotionRef = useRef(reducedMotion);
+  const previousPerformanceProfileRef = useRef(performanceProfile);
+  const previousOpeningStageSizeRef = useRef(openingStageSize);
 
   const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
   const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
@@ -1625,10 +1642,87 @@ export default function App() {
         } as CSSProperties)
       : undefined;
 
+  useEffect(() => {
+    debugLog("app mounted", {
+      initialPhase: phase,
+      reducedMotion,
+      performanceProfile,
+      openingFlowers: openingFlowerConfigs.length,
+      bouquetFlowers: bouquetFlowerConfigs.length,
+      pollenCount: pollen.length,
+      heartCount: bouquetHearts.length,
+      strictMode: true,
+    });
+  }, []);
+
+  useEffect(() => {
+    debugLog("phase changed", {
+      from: previousPhaseRef.current,
+      to: phase,
+    });
+    previousPhaseRef.current = phase;
+  }, [phase]);
+
+  useEffect(() => {
+    debugLog("interactivity changed", {
+      from: previousInteractiveRef.current,
+      to: isInteractive,
+      phase,
+    });
+    previousInteractiveRef.current = isInteractive;
+  }, [isInteractive, phase]);
+
+  useEffect(() => {
+    debugLog("noteOpen changed", {
+      from: previousNoteOpenRef.current,
+      to: noteOpen,
+      phase,
+      noteReady: noteReadyRef.current,
+      noteAnimating: noteAnimatingRef.current,
+    });
+    previousNoteOpenRef.current = noteOpen;
+  }, [noteOpen, phase]);
+
+  useEffect(() => {
+    debugLog("secretNoteOpen changed", {
+      from: previousSecretNoteOpenRef.current,
+      to: secretNoteOpen,
+      phase,
+    });
+    previousSecretNoteOpenRef.current = secretNoteOpen;
+  }, [secretNoteOpen, phase]);
+
+  useEffect(() => {
+    debugLog("reducedMotion changed", {
+      from: previousReducedMotionRef.current,
+      to: reducedMotion,
+    });
+    previousReducedMotionRef.current = reducedMotion;
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    debugLog("performance profile changed", {
+      from: previousPerformanceProfileRef.current,
+      to: performanceProfile,
+      pollenCount: pollen.length,
+      heartCount: bouquetHearts.length,
+    });
+    previousPerformanceProfileRef.current = performanceProfile;
+  }, [performanceProfile, pollen.length, bouquetHearts.length]);
+
+  useEffect(() => {
+    debugLog("opening stage size changed", {
+      from: previousOpeningStageSizeRef.current,
+      to: openingStageSize,
+    });
+    previousOpeningStageSizeRef.current = openingStageSize;
+  }, [openingStageSize]);
+
   useLayoutEffect(() => {
     const sceneElement = openingSceneRef.current;
 
     if (!sceneElement) {
+      debugLog("fitOpeningStage skipped because opening scene ref is missing");
       return undefined;
     }
 
@@ -1636,6 +1730,10 @@ export default function App() {
       const { width: sceneWidth, height: sceneHeight } = sceneElement.getBoundingClientRect();
 
       if (!sceneWidth || !sceneHeight) {
+        debugLog("fitOpeningStage skipped because scene has no measurable size", {
+          sceneWidth,
+          sceneHeight,
+        });
         return;
       }
 
@@ -1653,7 +1751,15 @@ export default function App() {
       setOpeningStageSize((current) =>
         current.width === roundedWidth && current.height === roundedHeight
           ? current
-          : { width: roundedWidth, height: roundedHeight },
+          : (() => {
+              debugLog("fitOpeningStage updated stage dimensions", {
+                sceneWidth,
+                sceneHeight,
+                width: roundedWidth,
+                height: roundedHeight,
+              });
+              return { width: roundedWidth, height: roundedHeight };
+            })(),
       );
     };
 
@@ -1680,6 +1786,7 @@ export default function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      debugLog("runtime profile effect skipped because window is undefined");
       return undefined;
     }
 
@@ -1696,6 +1803,14 @@ export default function App() {
         window.innerWidth,
         navigatorInfo,
       );
+
+      debugLog("runtime profile recalculated", {
+        width: window.innerWidth,
+        reducedMotion: nextReducedMotion,
+        performanceProfile: nextProfile,
+        hardwareConcurrency: navigatorInfo?.hardwareConcurrency ?? null,
+        deviceMemory: navigatorInfo?.deviceMemory ?? null,
+      });
 
       setReducedMotion((current) =>
         current === nextReducedMotion ? current : nextReducedMotion,
@@ -1736,6 +1851,26 @@ export default function App() {
       const sitewideHeartLayer = root.current?.querySelector<HTMLElement>(".bouquet-hearts--sitewide");
       const bouquetFlowersFrame = root.current?.querySelector<HTMLElement>(".bouquet-flowers");
       const bouquetBounds = bouquetFlowersFrame?.getBoundingClientRect();
+
+      debugLog("useGSAP init", {
+        openingFlowers: openingFlowers.length,
+        bouquetFlowers: bouquetFlowers.length,
+        clusterBotanicalPieces: clusterBotanicalPieces.length,
+        finalBotanicalPieces: finalBotanicalPieces.length,
+        impactRings: impactRings.length,
+        wrapPieces: wrapPieces.length,
+        haloEls: haloEls.length,
+        heartEls: heartEls.length,
+        glintEls: glintEls.length,
+        hasHeartLayer: Boolean(sitewideHeartLayer),
+        hasBouquetFrame: Boolean(bouquetFlowersFrame),
+        bouquetBounds: bouquetBounds
+          ? {
+              width: Math.round(bouquetBounds.width),
+              height: Math.round(bouquetBounds.height),
+            }
+          : null,
+      });
 
       gsap.set(openingFlowers, {
         opacity: 0,
@@ -1788,6 +1923,7 @@ export default function App() {
       const intro = gsap.timeline({
         defaults: { ease: motion.easeReveal },
         onComplete: () => {
+          debugLog("intro animation completed");
           setPhase("idle");
           setIsInteractive(true);
         },
@@ -1822,6 +1958,7 @@ export default function App() {
 
   useEffect(() => {
     if (phase !== "bouquet") {
+      debugLog("closing secret note because phase is not bouquet", { phase });
       setSecretNoteOpen(false);
     }
   }, [phase]);
@@ -1831,6 +1968,10 @@ export default function App() {
     const heartEls = gsap.utils.toArray<HTMLElement>(".bouquet-heart");
 
     if (!sceneRoot || !heartEls.length) {
+      debugLog("heart animation effect skipped", {
+        hasSceneRoot: Boolean(sceneRoot),
+        heartCount: heartEls.length,
+      });
       return undefined;
     }
 
@@ -1865,6 +2006,14 @@ export default function App() {
 
     updateMetrics();
 
+    debugLog("heart animation effect started", {
+      phase,
+      reducedMotion,
+      performanceProfile,
+      heartCount: heartEls.length,
+      phaseCenterYRatio,
+    });
+
     const heartState = heartEls.map((heart) => ({
       baseLeft: Number(heart.dataset.baseLeft ?? 50),
       baseTop: Number(heart.dataset.baseTop ?? 50),
@@ -1892,6 +2041,9 @@ export default function App() {
     }));
 
     if (reducedMotion) {
+      debugLog("heart animation using reduced motion branch", {
+        heartCount: heartState.length,
+      });
       heartState.forEach((heart) => {
         const basePoint = {
           x: (metrics.width * heart.baseLeft) / 100 - metrics.bouquetCenterX,
@@ -1986,6 +2138,10 @@ export default function App() {
     gsap.ticker.add(tick);
 
     return () => {
+      debugLog("heart animation effect cleanup", {
+        phase,
+        heartCount: heartEls.length,
+      });
       window.removeEventListener("resize", updateMetrics);
       gsap.ticker.remove(tick);
     };
@@ -1996,6 +2152,11 @@ export default function App() {
     const noteGlow = noteGlowRef.current;
 
     if (phase !== "bouquet") {
+      debugLog("note card reset because phase is not bouquet", {
+        phase,
+        hasNoteCard: Boolean(noteCard),
+        hasNoteGlow: Boolean(noteGlow),
+      });
       noteReadyRef.current = false;
       noteAnimatingRef.current = false;
       setNoteOpen(false);
@@ -2013,12 +2174,17 @@ export default function App() {
     }
 
     if (!noteCard || !noteGlow) {
+      debugLog("note card effect skipped because refs are missing", {
+        hasNoteCard: Boolean(noteCard),
+        hasNoteGlow: Boolean(noteGlow),
+      });
       return;
     }
 
     gsap.killTweensOf([noteCard, noteGlow]);
 
     if (reducedMotion) {
+      debugLog("note card using reduced motion branch");
       gsap.set(noteCard, { opacity: 1, x: 0, y: 0, scale: 1, rotate: -18 });
       gsap.set(noteGlow, { opacity: 0.26, scale: 1 });
       noteReadyRef.current = true;
@@ -2026,11 +2192,13 @@ export default function App() {
     }
 
     noteAnimatingRef.current = true;
+    debugLog("note card reveal animation started");
 
     gsap
       .timeline({
         defaults: { ease: motion.easeSettle },
         onComplete: () => {
+          debugLog("note card reveal animation completed");
           noteReadyRef.current = true;
           noteAnimatingRef.current = false;
         },
@@ -2069,10 +2237,19 @@ export default function App() {
 
   const toggleNoteCard = () => {
     if (phase !== "bouquet" || !noteReadyRef.current || noteAnimatingRef.current) {
+      debugLog("toggleNoteCard blocked", {
+        phase,
+        noteReady: noteReadyRef.current,
+        noteAnimating: noteAnimatingRef.current,
+      });
       return;
     }
 
     const nextOpen = !noteOpen;
+    debugLog("toggleNoteCard proceeding", {
+      currentOpen: noteOpen,
+      nextOpen,
+    });
     if (nextOpen) {
       setSecretNoteOpen(false);
     }
@@ -2082,7 +2259,13 @@ export default function App() {
   const toggleSecretFlowerNote = (event: ReactMouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
 
+    debugLog("secret flower clicked", {
+      phase,
+      targetFlowerId: event.currentTarget.dataset.flowerId ?? null,
+    });
+
     if (phase !== "bouquet") {
+      debugLog("secret flower click ignored because phase is not bouquet", { phase });
       return;
     }
 
@@ -2097,7 +2280,14 @@ export default function App() {
     event.preventDefault();
     event.stopPropagation();
 
+    debugLog("secret flower keyboard toggle requested", {
+      key: event.key,
+      phase,
+      targetFlowerId: event.currentTarget.dataset.flowerId ?? null,
+    });
+
     if (phase !== "bouquet") {
+      debugLog("secret flower keyboard toggle ignored because phase is not bouquet", { phase });
       return;
     }
 
@@ -2118,10 +2308,29 @@ export default function App() {
     const bouquetFlowersFrame = root.current?.querySelector<HTMLElement>(".bouquet-flowers");
 
     if (!bouquetFlowersFrame) {
+      debugLog("runArrangeSequence aborted because bouquet frame is missing");
       return;
     }
 
     const bouquetBounds = bouquetFlowersFrame.getBoundingClientRect();
+
+    debugLog("runArrangeSequence started", {
+      reducedMotion,
+      openingFlowers: openingFlowers.length,
+      openingFlowerParts: openingFlowerParts.length,
+      bouquetBackFlowers: bouquetBackFlowers.length,
+      bouquetMidFlowers: bouquetMidFlowers.length,
+      bouquetFrontFlowers: bouquetFrontFlowers.length,
+      clusterBotanicalPieces: clusterBotanicalPieces.length,
+      finalBotanicalPieces: finalBotanicalPieces.length,
+      impactRings: impactRings.length,
+      haloEls: haloEls.length,
+      heartEls: heartEls.length,
+      bouquetBounds: {
+        width: Math.round(bouquetBounds.width),
+        height: Math.round(bouquetBounds.height),
+      },
+    });
 
     setIsInteractive(false);
     setPhase("arranging");
@@ -2144,6 +2353,7 @@ export default function App() {
         .timeline({
           defaults: { ease: motion.easeSettle },
           onComplete: () => {
+            debugLog("runArrangeSequence completed in reduced motion mode");
             setPhase("clustered");
             setIsInteractive(true);
             gsap.to(cueRef.current, { opacity: 1, y: 0, duration: 0.48, ease: motion.easeReveal });
@@ -2289,9 +2499,19 @@ export default function App() {
     const orderedConvergence = [...convergence].sort((left, right) => right.travel - left.travel);
     const movementRank = new Map(orderedConvergence.map((entry, order) => [entry.flower, order]));
 
+    debugLog("runArrangeSequence convergence prepared", {
+      totalFlowers: convergence.length,
+      movingFlowers: convergence.filter((entry) => entry.travel > 0).length,
+      hiddenAfterCluster: convergence.filter((entry) => !entry.showInBouquet).length,
+      maxTravel: Math.round(
+        convergence.reduce((max, entry) => Math.max(max, entry.travel), 0),
+      ),
+    });
+
     const timeline = gsap.timeline({
       defaults: { ease: motion.easeSettle },
       onComplete: () => {
+        debugLog("runArrangeSequence completed");
         setPhase("clustered");
         setIsInteractive(true);
         gsap.to(cueRef.current, { opacity: 1, y: 0, duration: 0.46, ease: motion.easeReveal });
@@ -2507,6 +2727,20 @@ export default function App() {
     const heartEls = gsap.utils.toArray<HTMLElement>(".bouquet-heart");
     const glintEls = gsap.utils.toArray<HTMLElement>(".bouquet-glint");
 
+    debugLog("runCompleteSequence started", {
+      reducedMotion,
+      bouquetFlowers: bouquetFlowers.length,
+      bouquetBackFlowers: bouquetBackFlowers.length,
+      bouquetMidFlowers: bouquetMidFlowers.length,
+      bouquetFrontFlowers: bouquetFrontFlowers.length,
+      clusterBotanicalPieces: clusterBotanicalPieces.length,
+      finalBotanicalPieces: finalBotanicalPieces.length,
+      wrapPieces: wrapPieces.length,
+      haloEls: haloEls.length,
+      heartEls: heartEls.length,
+      glintEls: glintEls.length,
+    });
+
     setIsInteractive(false);
     setPhase("finishing");
 
@@ -2523,7 +2757,10 @@ export default function App() {
       gsap
         .timeline({
           defaults: { ease: motion.easeSettle },
-          onComplete: () => setPhase("bouquet"),
+          onComplete: () => {
+            debugLog("runCompleteSequence completed in reduced motion mode");
+            setPhase("bouquet");
+          },
         })
         .to(cueRef.current, { opacity: 0, y: 18, duration: motion.quick }, 0)
         .to(bouquetRef.current, { opacity: 1, scale: 1, yPercent: 0, duration: 0.24 }, 0)
@@ -2576,7 +2813,10 @@ export default function App() {
     gsap
       .timeline({
         defaults: { ease: motion.easeSettle },
-        onComplete: () => setPhase("bouquet"),
+        onComplete: () => {
+          debugLog("runCompleteSequence completed");
+          setPhase("bouquet");
+        },
       })
       .to(cueRef.current, { opacity: 0, y: 18, duration: motion.quick }, 0)
       .to(
@@ -2697,17 +2937,23 @@ export default function App() {
 
   const triggerSequence = () => {
     if (!isInteractive) {
+      debugLog("triggerSequence ignored because app is not interactive", { phase });
       return;
     }
 
     if (phase === "idle") {
+      debugLog("triggerSequence routing to arrange");
       runArrangeSequence();
       return;
     }
 
     if (phase === "clustered") {
+      debugLog("triggerSequence routing to complete");
       runCompleteSequence();
+      return;
     }
+
+    debugLog("triggerSequence received click in unsupported phase", { phase });
   };
 
   return (
@@ -2716,7 +2962,10 @@ export default function App() {
       data-interactive={isInteractive}
       data-performance-profile={performanceProfile}
       ref={root}
-      onClick={triggerSequence}
+      onClick={() => {
+        debugLog("site root clicked", { phase, isInteractive });
+        triggerSequence();
+      }}
       role="presentation"
     >
       <div className="backdrop">
@@ -2860,6 +3109,7 @@ export default function App() {
         ref={cueRef}
         onClick={(event) => {
           event.stopPropagation();
+          debugLog("trigger cue clicked", { phase, isInteractive });
           triggerSequence();
         }}
         disabled={!isInteractive}
