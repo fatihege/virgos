@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type RefObject,
 } from "react";
@@ -22,6 +23,11 @@ import {
 gsap.registerPlugin(useGSAP);
 
 type Phase = "intro" | "idle" | "arranging" | "clustered" | "finishing" | "bouquet";
+type PerformanceProfile = "full" | "balanced" | "light";
+
+type NavigatorWithDeviceMemory = Navigator & {
+  deviceMemory?: number;
+};
 
 type BouquetGlint = {
   id: string;
@@ -58,11 +64,24 @@ type NoteCopy = {
   signature: string;
 };
 
+type SecretNoteCopy = {
+  body: string;
+};
+
 type BouquetStage = "cluster" | "bouquet";
 
 type Point = {
   x: number;
   y: number;
+};
+
+type HeartPhaseSettings = {
+  opacityMultiplier: number;
+  scaleMultiplier: number;
+  localOrbitScale: number;
+  localSpeedMultiplier: number;
+  bouquetOrbitStrength: number;
+  bouquetOrbitSpeed: number;
 };
 
 const bouquetBaseTop = {
@@ -113,17 +132,137 @@ const motionWeightArcBias = {
 
 const openingStageAspectRatio = 2;
 
+function computePerformanceProfile(
+  reducedMotion: boolean,
+  viewportWidth: number,
+  navigatorInfo?: NavigatorWithDeviceMemory,
+): PerformanceProfile {
+  if (reducedMotion) {
+    return "light";
+  }
+
+  const hardwareConcurrency = navigatorInfo?.hardwareConcurrency ?? 8;
+  const deviceMemory = navigatorInfo?.deviceMemory ?? 8;
+
+  if (viewportWidth <= 768 || hardwareConcurrency <= 4 || deviceMemory <= 4) {
+    return "light";
+  }
+
+  if (viewportWidth > 1200 && hardwareConcurrency > 8 && deviceMemory > 8) {
+    return "full";
+  }
+
+  return "balanced";
+}
+
+function getPollenCount(profile: PerformanceProfile) {
+  return profile === "light" ? 9 : profile === "balanced" ? 14 : 18;
+}
+
+function getHeartTargetCount(profile: PerformanceProfile) {
+  return profile === "light" ? 25 : profile === "balanced" ? 45 : 75;
+}
+
+function pickDistributedItems<T>(items: T[], targetCount: number) {
+  if (targetCount >= items.length) {
+    return items;
+  }
+
+  const lastIndex = items.length - 1;
+
+  return Array.from({ length: targetCount }, (_, index) => {
+    const sampleIndex =
+      targetCount === 1
+        ? 0
+        : Math.round((index * lastIndex) / (targetCount - 1));
+
+    return items[sampleIndex];
+  });
+}
+
+function getHeartPhaseSettings(
+  phase: Phase,
+  profile: PerformanceProfile,
+): HeartPhaseSettings {
+  const profileMotionScale =
+    profile === "full"
+      ? 1
+      : profile === "balanced"
+        ? 0.86
+        : 0.68;
+
+  switch (phase) {
+    case "intro":
+    case "idle":
+      return {
+        opacityMultiplier: 0.66,
+        scaleMultiplier: 0.84,
+        localOrbitScale: 0.84,
+        localSpeedMultiplier: 0.54 * profileMotionScale,
+        bouquetOrbitStrength: 0,
+        bouquetOrbitSpeed: 0,
+      };
+    case "arranging":
+      return {
+        opacityMultiplier: 0.74,
+        scaleMultiplier: 0.92,
+        localOrbitScale: 0.9,
+        localSpeedMultiplier: 0.64 * profileMotionScale,
+        bouquetOrbitStrength: 0,
+        bouquetOrbitSpeed: 0,
+      };
+    case "clustered":
+      return {
+        opacityMultiplier: 0.82,
+        scaleMultiplier: 0.96,
+        localOrbitScale: 0.94,
+        localSpeedMultiplier: 0.86 * profileMotionScale,
+        bouquetOrbitStrength: 0.72,
+        bouquetOrbitSpeed: (2 * Math.PI) / 176,
+      };
+    case "finishing":
+      return {
+        opacityMultiplier: 0.88,
+        scaleMultiplier: 1,
+        localOrbitScale: 0.98,
+        localSpeedMultiplier: 0.92 * profileMotionScale,
+        bouquetOrbitStrength: 0.86,
+        bouquetOrbitSpeed: (2 * Math.PI) / 164,
+      };
+    case "bouquet":
+      return {
+        opacityMultiplier: 0.96,
+        scaleMultiplier: 1.02,
+        localOrbitScale: 1.03,
+        localSpeedMultiplier: 1 * profileMotionScale,
+        bouquetOrbitStrength: 1,
+        bouquetOrbitSpeed: (2 * Math.PI) / 150,
+      };
+  }
+}
+
 const romanticNote: NoteCopy = {
   closedLabel: "a note for you",
-  eyebrow: "with tenderness",
-  title: "For you, always",
-  body:
-    "If this bouquet could speak, it would only say what my heart already knows: every soft and beautiful thing still finds its way back to you.",
-  signature: "With all my love",
+  eyebrow: "",
+  title: "Happy birthday, Ceren. \u{1F338}",
+  body: [
+    "I hope your day has been as beautiful as you are.",
+    "If this bouquet could speak, it would only say: every beautiful thing in this world deserves to find you.",
+    "And I hope this little surprise was worth the excitement. \u{1F49C}",
+  ].join("\n"),
+  signature: "",
 };
 
-function buildPollen() {
-  return Array.from({ length: 18 }, (_, index) => ({
+const secretFlowerId = "f-2";
+
+const secretNote: SecretNoteCopy = {
+  body: "You are the most beautiful flower in the world. I know this very well💜 .",
+};
+
+function buildPollen(profile: PerformanceProfile) {
+  const pollenCount = getPollenCount(profile);
+
+  return Array.from({ length: pollenCount }, (_, index) => ({
     id: `pollen-${index}`,
     left: 4 + ((index * 13) % 92),
     top: 6 + ((index * 17) % 88),
@@ -143,94 +282,413 @@ function buildBouquetGlints(): BouquetGlint[] {
   ];
 }
 
-function buildBouquetHearts(): BouquetHeart[] {
+function buildBouquetHearts(profile: PerformanceProfile): BouquetHeart[] {
   const palette = [
-    "#f7a9c4",
-    "#ffc68c",
-    "#ffe89f",
-    "#d8b8ff",
-    "#a8c4ff",
-    "#ffd3de",
-    "#ffdfb3",
-    "#c8b8ff",
+    "#f06aa2",
+    "#f39d42",
+    "#f2cf3a",
+    "#b974f2",
+    "#5b98f2",
+    "#f58cb1",
+    "#f0b869",
+    "#9a7af0",
   ];
-  const rings = [
+  const clusters = [
     {
-      count: 9,
-      centerLeft: 42.5,
-      centerTop: 42.8,
-      radiusX: 148,
-      radiusY: 92,
-      sizeBase: 24,
+      count: 5,
+      centerLeft: 10,
+      centerTop: 12,
+      spreadX: 8,
+      spreadY: 6,
+      radiusX: 48,
+      radiusY: 38,
+      sizeBase: 18,
+      sizeStep: 3,
+      opacityBase: 0.15,
+      durationBase: 30,
+      paletteOffset: 0,
+      scaleBase: 0.7,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -126,
+    },
+    {
+      count: 5,
+      centerLeft: 28,
+      centerTop: 17,
+      spreadX: 9,
+      spreadY: 7,
+      radiusX: 52,
+      radiusY: 40,
+      sizeBase: 20,
+      sizeStep: 3,
+      opacityBase: 0.17,
+      durationBase: 31,
+      paletteOffset: 2,
+      scaleBase: 0.74,
+      wobbleX: 6,
+      wobbleY: 4,
+      angleOffset: -96,
+    },
+    {
+      count: 5,
+      centerLeft: 48,
+      centerTop: 14,
+      spreadX: 10,
+      spreadY: 8,
+      radiusX: 56,
+      radiusY: 42,
+      sizeBase: 21,
+      sizeStep: 4,
+      opacityBase: 0.18,
+      durationBase: 32,
+      paletteOffset: 4,
+      scaleBase: 0.76,
+      wobbleX: 7,
+      wobbleY: 5,
+      angleOffset: -104,
+    },
+    {
+      count: 5,
+      centerLeft: 68,
+      centerTop: 17,
+      spreadX: 9,
+      spreadY: 7,
+      radiusX: 54,
+      radiusY: 40,
+      sizeBase: 20,
+      sizeStep: 4,
+      opacityBase: 0.18,
+      durationBase: 32,
+      paletteOffset: 1,
+      scaleBase: 0.76,
+      wobbleX: 8,
+      wobbleY: 6,
+      angleOffset: -82,
+    },
+    {
+      count: 5,
+      centerLeft: 88,
+      centerTop: 13,
+      spreadX: 8,
+      spreadY: 6,
+      radiusX: 50,
+      radiusY: 38,
+      sizeBase: 18,
       sizeStep: 4,
       opacityBase: 0.16,
-      durationBase: 28,
-      paletteOffset: 0,
+      durationBase: 31,
+      paletteOffset: 6,
+      scaleBase: 0.72,
+      wobbleX: 7,
+      wobbleY: 5,
+      angleOffset: -72,
+    },
+    {
+      count: 5,
+      centerLeft: 14,
+      centerTop: 34,
+      spreadX: 9,
+      spreadY: 8,
+      radiusX: 60,
+      radiusY: 44,
+      sizeBase: 20,
+      sizeStep: 3,
+      opacityBase: 0.17,
+      durationBase: 33,
+      paletteOffset: 3,
       scaleBase: 0.76,
       wobbleX: 6,
       wobbleY: 4,
-      angleOffset: -112,
+      angleOffset: -94,
     },
     {
-      count: 8,
-      centerLeft: 57.4,
-      centerTop: 46.5,
-      radiusX: 214,
-      radiusY: 128,
-      sizeBase: 30,
+      count: 5,
+      centerLeft: 34,
+      centerTop: 38,
+      spreadX: 10,
+      spreadY: 8,
+      radiusX: 64,
+      radiusY: 48,
+      sizeBase: 21,
+      sizeStep: 3,
+      opacityBase: 0.18,
+      durationBase: 33,
+      paletteOffset: 5,
+      scaleBase: 0.78,
+      wobbleX: 6,
+      wobbleY: 4,
+      angleOffset: -62,
+    },
+    {
+      count: 6,
+      centerLeft: 54,
+      centerTop: 36,
+      spreadX: 12,
+      spreadY: 9,
+      radiusX: 70,
+      radiusY: 52,
+      sizeBase: 23,
       sizeStep: 4,
       opacityBase: 0.19,
-      durationBase: 32,
-      paletteOffset: 3,
+      durationBase: 34,
+      paletteOffset: 7,
+      scaleBase: 0.82,
+      wobbleX: 7,
+      wobbleY: 5,
+      angleOffset: -88,
+    },
+    {
+      count: 5,
+      centerLeft: 76,
+      centerTop: 35,
+      spreadX: 10,
+      spreadY: 8,
+      radiusX: 62,
+      radiusY: 46,
+      sizeBase: 21,
+      sizeStep: 4,
+      opacityBase: 0.18,
+      durationBase: 33,
+      paletteOffset: 1,
+      scaleBase: 0.79,
+      wobbleX: 6,
+      wobbleY: 5,
+      angleOffset: -70,
+    },
+    {
+      count: 5,
+      centerLeft: 90,
+      centerTop: 34,
+      spreadX: 8,
+      spreadY: 7,
+      radiusX: 52,
+      radiusY: 40,
+      sizeBase: 19,
+      sizeStep: 3,
+      opacityBase: 0.16,
+      durationBase: 31,
+      paletteOffset: 4,
+      scaleBase: 0.74,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -54,
+    },
+    {
+      count: 5,
+      centerLeft: 12,
+      centerTop: 58,
+      spreadX: 9,
+      spreadY: 9,
+      radiusX: 58,
+      radiusY: 46,
+      sizeBase: 20,
+      sizeStep: 3,
+      opacityBase: 0.17,
+      durationBase: 33,
+      paletteOffset: 6,
+      scaleBase: 0.75,
+      wobbleX: 6,
+      wobbleY: 4,
+      angleOffset: -90,
+    },
+    {
+      count: 6,
+      centerLeft: 30,
+      centerTop: 60,
+      spreadX: 11,
+      spreadY: 9,
+      radiusX: 66,
+      radiusY: 50,
+      sizeBase: 22,
+      sizeStep: 4,
+      opacityBase: 0.18,
+      durationBase: 34,
+      paletteOffset: 2,
+      scaleBase: 0.8,
+      wobbleX: 7,
+      wobbleY: 5,
+      angleOffset: -80,
+    },
+    {
+      count: 6,
+      centerLeft: 50,
+      centerTop: 64,
+      spreadX: 12,
+      spreadY: 10,
+      radiusX: 72,
+      radiusY: 54,
+      sizeBase: 24,
+      sizeStep: 4,
+      opacityBase: 0.19,
+      durationBase: 35,
+      paletteOffset: 5,
       scaleBase: 0.84,
       wobbleX: 8,
       wobbleY: 6,
-      angleOffset: -84,
+      angleOffset: -74,
     },
     {
-      count: 8,
-      centerLeft: 48.7,
-      centerTop: 54.2,
-      radiusX: 286,
-      radiusY: 176,
-      sizeBase: 34,
-      sizeStep: 5,
-      opacityBase: 0.22,
-      durationBase: 36,
-      paletteOffset: 5,
-      scaleBase: 0.92,
-      wobbleX: 10,
-      wobbleY: 8,
-      angleOffset: -58,
+      count: 6,
+      centerLeft: 71,
+      centerTop: 62,
+      spreadX: 11,
+      spreadY: 9,
+      radiusX: 68,
+      radiusY: 52,
+      sizeBase: 22,
+      sizeStep: 4,
+      opacityBase: 0.18,
+      durationBase: 34,
+      paletteOffset: 0,
+      scaleBase: 0.8,
+      wobbleX: 7,
+      wobbleY: 5,
+      angleOffset: -60,
+    },
+    {
+      count: 5,
+      centerLeft: 89,
+      centerTop: 58,
+      spreadX: 8,
+      spreadY: 8,
+      radiusX: 56,
+      radiusY: 44,
+      sizeBase: 20,
+      sizeStep: 3,
+      opacityBase: 0.17,
+      durationBase: 32,
+      paletteOffset: 3,
+      scaleBase: 0.76,
+      wobbleX: 6,
+      wobbleY: 4,
+      angleOffset: -50,
+    },
+    {
+      count: 5,
+      centerLeft: 14,
+      centerTop: 84,
+      spreadX: 8,
+      spreadY: 7,
+      radiusX: 50,
+      radiusY: 38,
+      sizeBase: 18,
+      sizeStep: 3,
+      opacityBase: 0.15,
+      durationBase: 31,
+      paletteOffset: 1,
+      scaleBase: 0.72,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -82,
+    },
+    {
+      count: 5,
+      centerLeft: 34,
+      centerTop: 86,
+      spreadX: 9,
+      spreadY: 7,
+      radiusX: 54,
+      radiusY: 40,
+      sizeBase: 19,
+      sizeStep: 3,
+      opacityBase: 0.16,
+      durationBase: 31,
+      paletteOffset: 7,
+      scaleBase: 0.74,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -68,
+    },
+    {
+      count: 5,
+      centerLeft: 57,
+      centerTop: 86,
+      spreadX: 9,
+      spreadY: 7,
+      radiusX: 56,
+      radiusY: 42,
+      sizeBase: 20,
+      sizeStep: 3,
+      opacityBase: 0.17,
+      durationBase: 32,
+      paletteOffset: 4,
+      scaleBase: 0.76,
+      wobbleX: 6,
+      wobbleY: 4,
+      angleOffset: -62,
+    },
+    {
+      count: 5,
+      centerLeft: 79,
+      centerTop: 85,
+      spreadX: 8,
+      spreadY: 7,
+      radiusX: 52,
+      radiusY: 40,
+      sizeBase: 19,
+      sizeStep: 3,
+      opacityBase: 0.16,
+      durationBase: 31,
+      paletteOffset: 6,
+      scaleBase: 0.74,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -54,
+    },
+    {
+      count: 5,
+      centerLeft: 92,
+      centerTop: 84,
+      spreadX: 7,
+      spreadY: 6,
+      radiusX: 48,
+      radiusY: 38,
+      sizeBase: 18,
+      sizeStep: 3,
+      opacityBase: 0.15,
+      durationBase: 30,
+      paletteOffset: 2,
+      scaleBase: 0.7,
+      wobbleX: 5,
+      wobbleY: 4,
+      angleOffset: -42,
     },
   ] as const;
 
   let heartId = 1;
 
-  return rings.flatMap((ring, ringIndex) =>
-    Array.from({ length: ring.count }, (_value, index) => {
-      const angle = ring.angleOffset + (360 / ring.count) * index + ((index % 2) === 0 ? -6 : 7);
+  const allHearts = clusters.flatMap((cluster, clusterIndex) =>
+    Array.from({ length: cluster.count }, (_value, index) => {
+      const angle =
+        cluster.angleOffset +
+        (360 / cluster.count) * index +
+        ((index + clusterIndex) % 2 === 0 ? -9 : 11);
+      const leftJitter = ((index * 7 + clusterIndex * 3) % 9) - 4;
+      const topJitter = ((index * 5 + clusterIndex * 4) % 9) - 4;
 
       return {
         id: `heart-${heartId++}`,
-        left: ring.centerLeft + ((index % 5) - 2) * 2.2 + (ringIndex - 1) * 0.8,
-        top: ring.centerTop + (((index + ringIndex) % 5) - 2) * 1.8,
-        size: ring.sizeBase + (index % 4) * ring.sizeStep,
-        rotate: ((index * 21 + ringIndex * 17) % 34) - 17,
-        opacity: ring.opacityBase + (index % 3) * 0.024,
-        duration: ring.durationBase + (index % 4) * 1.8,
-        delay: index * 0.28 + ringIndex * 0.16,
-        orbitRadiusX: ring.radiusX + ((index % 5) - 2) * 18,
-        orbitRadiusY: ring.radiusY + (((index + 2) % 5) - 2) * 14,
+        left: cluster.centerLeft + leftJitter * (cluster.spreadX / 4),
+        top: cluster.centerTop + topJitter * (cluster.spreadY / 4),
+        size: cluster.sizeBase + (index % 4) * cluster.sizeStep,
+        rotate: ((index * 19 + clusterIndex * 23) % 36) - 18,
+        opacity: cluster.opacityBase + (index % 3) * 0.022,
+        duration: cluster.durationBase + (index % 4) * 1.7,
+        delay: index * 0.22 + clusterIndex * 0.11,
+        orbitRadiusX: cluster.radiusX + (((index * 3 + clusterIndex) % 7) - 3) * 10,
+        orbitRadiusY: cluster.radiusY + ((((index + 2) * 2 + clusterIndex) % 7) - 3) * 8,
         orbitStart: angle,
-        orbitDirection: (index + ringIndex) % 2 === 0 ? 1 : -1,
-        wobbleX: ring.wobbleX + (index % 4) * 2.4,
-        wobbleY: ring.wobbleY + ((index + 1) % 4) * 1.9,
-        scale: ring.scaleBase + (index % 4) * 0.055,
-        color: palette[(index + ring.paletteOffset) % palette.length],
+        orbitDirection: (index + clusterIndex) % 2 === 0 ? 1 : -1,
+        wobbleX: cluster.wobbleX + (index % 4) * 2.1,
+        wobbleY: cluster.wobbleY + ((index + 1) % 4) * 1.7,
+        scale: cluster.scaleBase + (index % 4) * 0.05,
+        color: palette[(index + cluster.paletteOffset + clusterIndex) % palette.length],
       };
     }),
   );
+
+  return pickDistributedItems(allHearts, getHeartTargetCount(profile));
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -489,15 +947,16 @@ function buildBotanicalGeometry(
     y: bundle.y,
   };
   const anchorOffset =
-    flower.bouquetRole === "hero"
+    flower.bouquetStemAttachY ??
+    (flower.bouquetRole === "hero"
       ? 4.8
       : flower.bouquetRole === "support"
         ? 4.2
         : flower.bouquetRole === "foliage"
           ? 3.4
-          : 3.7;
+          : 3.7);
   const stemTip = {
-    x: crownPoint.x,
+    x: crownPoint.x + (flower.bouquetStemAttachX ?? 0),
     y: crownPoint.y + anchorOffset,
   };
   const side = crownPoint.x < bundle.x ? -1 : 1;
@@ -576,24 +1035,46 @@ function buildBotanicalGeometry(
 function Flower({
   flower,
   mode,
+  isSecretFlower = false,
+  secretOpen = false,
+  onClick,
+  onKeyDown,
 }: {
   flower: FlowerConfig;
   mode: "opening" | "bouquet";
+  isSecretFlower?: boolean;
+  secretOpen?: boolean;
+  onClick?: (event: ReactMouseEvent<HTMLDivElement>) => void;
+  onKeyDown?: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
 }) {
-  const centerContent = flower.isCenterMessage && mode === "bouquet" ? "you" : undefined;
+  const isInteractiveSecret = isSecretFlower && mode === "bouquet";
   const bouquetScale = flower.bouquetScale ?? 1;
+  const bouquetSwayDirection = flower.startRotation >= 0 ? 1 : -1;
+  const bouquetSwayStrength =
+    flower.bouquetLayer === "front"
+      ? 1
+      : flower.bouquetLayer === "mid"
+        ? 0.78
+        : 0.56;
+  const flowerOrder = Number.parseInt(flower.id.replace("f-", ""), 10) || 0;
   const bouquetWidth = flower.isCenterMessage
     ? `clamp(104px, ${flower.size * bouquetScale}vw, 248px)`
     : `clamp(86px, ${flower.size * bouquetScale * 0.94}vw, 228px)`;
   const bouquetTop = `${bouquetBaseTop[flower.bouquetLayer] + flower.bouquetTargetY}%`;
-  const bouquetZ = flower.isCenterMessage
-    ? 96
-    : bouquetLayerZ[flower.bouquetLayer] + Math.round(flower.depth * 12);
+  const bouquetZ = isInteractiveSecret
+    ? 148
+    : isSecretFlower
+    ? 136
+    : flower.isCenterMessage
+      ? 96
+      : bouquetLayerZ[flower.bouquetLayer] + Math.round(flower.depth * 12);
 
   return (
     <div
       className={`flower flower--${mode} flower--layer-${flower.bouquetLayer}${
         flower.isCenterMessage ? " flower--message" : ""
+      }${
+        isSecretFlower ? " flower--secret" : ""
       }`}
       data-flower-id={flower.id}
       data-role={flower.bouquetRole}
@@ -605,6 +1086,16 @@ function Flower({
       data-cluster-rotation={flower.clusterRotation}
       data-cluster-scale={flower.clusterScale}
       data-layer={flower.bouquetLayer}
+      data-center-message={flower.isCenterMessage ? "true" : "false"}
+      data-secret-flower={isSecretFlower ? "true" : "false"}
+      data-secret-open={secretOpen ? "true" : "false"}
+      role={isInteractiveSecret ? "button" : undefined}
+      aria-label={isInteractiveSecret ? "Open the secret flower note" : undefined}
+      aria-controls={isInteractiveSecret ? "secret-flower-note" : undefined}
+      aria-expanded={isInteractiveSecret ? secretOpen : undefined}
+      tabIndex={isInteractiveSecret ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
       style={
         mode === "opening"
           ? getFlowerStyle(flower)
@@ -613,14 +1104,128 @@ function Flower({
               top: bouquetTop,
               width: bouquetWidth,
               zIndex: bouquetZ,
+              "--bouquet-sway-y-base": `${(0.08 + flower.depth * 0.12) * bouquetSwayStrength}rem`,
+              "--bouquet-sway-rotate-base": `${(0.48 + flower.depth * 0.82) * bouquetSwayDirection * bouquetSwayStrength}deg`,
+              "--bouquet-sway-duration": `${(
+                flower.motionWeight === "heavy"
+                  ? 4.8
+                  : flower.motionWeight === "medium"
+                    ? 5.6
+                    : 6.4
+              ).toFixed(2)}s`,
+              "--bouquet-sway-delay": `${(-flowerOrder * 0.18 - flower.depth * 0.9).toFixed(2)}s`,
             } as CSSProperties)
       }
     >
-      {mode === "opening" && shouldShowOpeningStem(flower) ? (
-        <span className="flower__stem flower__stem--opening">{renderStemArt(flower.variant, "opening")}</span>
-      ) : null}
-      <div className="flower__head">{renderFlower(flower.variant, flower.palette)}</div>
-      {centerContent ? <span className="flower__label">{centerContent}</span> : null}
+      <div className="flower__motion">
+        {mode === "opening" && shouldShowOpeningStem(flower) ? (
+          <span className="flower__stem flower__stem--opening">{renderStemArt(flower.variant, "opening")}</span>
+        ) : null}
+        <div className="flower__head">
+          {renderFlower(flower.variant, flower.palette)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniBloomIcon({
+  className,
+  centerFill = "#ffe7a3",
+}: {
+  className?: string;
+  centerFill?: string;
+}) {
+  return (
+    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+      <circle cx="16" cy="7.8" r="4.9" fill="currentColor" />
+      <circle cx="24.2" cy="13.7" r="4.9" fill="currentColor" />
+      <circle cx="21.1" cy="23.2" r="4.9" fill="currentColor" />
+      <circle cx="10.9" cy="23.2" r="4.9" fill="currentColor" />
+      <circle cx="7.8" cy="13.7" r="4.9" fill="currentColor" />
+      <circle cx="16" cy="16" r="4.1" fill={centerFill} />
+    </svg>
+  );
+}
+
+function MiniHeartIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path
+        d="M12 19.2 5.8 13.3C3.9 11.5 3.8 8.4 5.5 6.6c1.7-1.9 4.6-2 6.4-.3l.1.2.1-.2c1.8-1.7 4.7-1.6 6.4.3 1.7 1.8 1.6 4.9-.3 6.7Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function MiniSparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 28 28" className={className} aria-hidden="true">
+      <path d="M14 2.8 16.9 11.1 25.2 14 16.9 16.9 14 25.2 11.1 16.9 2.8 14 11.1 11.1Z" fill="currentColor" />
+      <circle cx="14" cy="14" r="2.2" fill="rgba(255,255,255,0.7)" />
+    </svg>
+  );
+}
+
+function SecretFlowerNote({
+  flower,
+  open,
+  note,
+}: {
+  flower: FlowerConfig;
+  open: boolean;
+  note: SecretNoteCopy;
+}) {
+  const left = `${50 + flower.bouquetTargetX + 5.5}%`;
+  const top = `${bouquetBaseTop[flower.bouquetLayer] + flower.bouquetTargetY + 5.5}%`;
+
+  return (
+    <div
+      id="secret-flower-note"
+      className="secret-flower-note"
+      data-open={open}
+      aria-hidden={!open}
+      style={
+        {
+          left,
+          top,
+        } as CSSProperties
+      }
+    >
+      <span className="secret-flower-note__paper">
+        <span className="secret-flower-note__ornaments" aria-hidden="true">
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--flower secret-flower-note__ornament--top-left">
+            <MiniBloomIcon className="secret-flower-note__icon" centerFill="#ffe7a3" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--heart secret-flower-note__ornament--top-right">
+            <MiniHeartIcon className="secret-flower-note__icon" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--heart secret-flower-note__ornament--left-mid">
+            <MiniHeartIcon className="secret-flower-note__icon" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--flower secret-flower-note__ornament--bottom-right">
+            <MiniBloomIcon className="secret-flower-note__icon" centerFill="#fff1ae" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--sparkle secret-flower-note__ornament--top-center">
+            <MiniSparkleIcon className="secret-flower-note__icon" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--flower secret-flower-note__ornament--right-mid">
+            <MiniBloomIcon className="secret-flower-note__icon" centerFill="#fff5b8" />
+          </span>
+          <span className="secret-flower-note__ornament secret-flower-note__ornament--sparkle secret-flower-note__ornament--bottom-left">
+            <MiniSparkleIcon className="secret-flower-note__icon" />
+          </span>
+        </span>
+        <span className="secret-flower-note__spark" aria-hidden="true" />
+        <span className="secret-flower-note__garland" aria-hidden="true">
+          <MiniSparkleIcon className="secret-flower-note__garland-icon secret-flower-note__garland-icon--sparkle" />
+          <span className="secret-flower-note__garland-line" />
+          <MiniHeartIcon className="secret-flower-note__garland-icon secret-flower-note__garland-icon--heart" />
+          <MiniBloomIcon className="secret-flower-note__garland-icon secret-flower-note__garland-icon--flower" centerFill="#fff0a8" />
+        </span>
+        <span className="secret-flower-note__body">{note.body}</span>
+      </span>
     </div>
   );
 }
@@ -779,29 +1384,17 @@ function BouquetWrap() {
   );
 }
 
-function NoteCard({
-  noteRef,
-  glowRef,
-  open,
+function NoteCardContents({
   note,
-  onClick,
+  open,
+  glowRef,
 }: {
-  noteRef: RefObject<HTMLButtonElement>;
-  glowRef: RefObject<HTMLSpanElement>;
-  open: boolean;
   note: NoteCopy;
-  onClick: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+  open: boolean;
+  glowRef?: RefObject<HTMLSpanElement>;
 }) {
   return (
-    <button
-      ref={noteRef}
-      type="button"
-      className="note-card"
-      data-open={open}
-      aria-expanded={open}
-      aria-label={open ? "Close the romantic note" : "Open the romantic note"}
-      onClick={onClick}
-    >
+    <>
       <span className="note-card__glow" ref={glowRef} aria-hidden="true" />
       <span className="note-card__tuck" aria-hidden="true" />
       <span className="note-card__paper">
@@ -824,10 +1417,46 @@ function NoteCard({
           </span>
         </span>
         <span className="note-card__sheet">
-          <span className="note-card__eyebrow">{note.eyebrow}</span>
+          <span className="note-card__sheet-garland" aria-hidden="true">
+            <MiniBloomIcon className="note-card__sheet-garland-icon note-card__sheet-garland-icon--flower" centerFill="#fff1a8" />
+            <span className="note-card__sheet-garland-line" />
+            <MiniHeartIcon className="note-card__sheet-garland-icon note-card__sheet-garland-icon--heart" />
+            <MiniSparkleIcon className="note-card__sheet-garland-icon note-card__sheet-garland-icon--sparkle" />
+          </span>
+          {note.eyebrow ? <span className="note-card__eyebrow">{note.eyebrow}</span> : null}
           <span className="note-card__title">{note.title}</span>
           <span className="note-card__body">{note.body}</span>
-          <span className="note-card__signature">{note.signature}</span>
+          {note.signature ? <span className="note-card__signature">{note.signature}</span> : null}
+        </span>
+        {open ? (
+          <span className="note-card__paper-blooms" aria-hidden="true">
+            <span className="note-card__paper-bloom note-card__paper-bloom--top-right-flower">
+              <MiniBloomIcon className="note-card__paper-bloom-icon" centerFill="#fff0ad" />
+            </span>
+            <span className="note-card__paper-bloom note-card__paper-bloom--top-right-heart">
+              <MiniHeartIcon className="note-card__paper-bloom-icon" />
+            </span>
+            <span className="note-card__paper-bloom note-card__paper-bloom--bottom-left-sparkle">
+              <MiniSparkleIcon className="note-card__paper-bloom-icon" />
+            </span>
+            <span className="note-card__paper-bloom note-card__paper-bloom--bottom-right-flower">
+              <MiniBloomIcon className="note-card__paper-bloom-icon" centerFill="#fff6c3" />
+            </span>
+          </span>
+        ) : null}
+      </span>
+      <span className="note-card__ornaments" aria-hidden="true">
+        <span className="note-card__ornament note-card__ornament--flower note-card__ornament--top-left">
+          <MiniBloomIcon className="note-card__ornament-icon" centerFill="#fff0a8" />
+        </span>
+        <span className="note-card__ornament note-card__ornament--heart note-card__ornament--top-right">
+          <MiniHeartIcon className="note-card__ornament-icon" />
+        </span>
+        <span className="note-card__ornament note-card__ornament--sparkle note-card__ornament--left-mid">
+          <MiniSparkleIcon className="note-card__ornament-icon" />
+        </span>
+        <span className="note-card__ornament note-card__ornament--flower note-card__ornament--bottom-right">
+          <MiniBloomIcon className="note-card__ornament-icon" centerFill="#fff7bf" />
         </span>
       </span>
       <span className="note-card__occlusion note-card__occlusion--upper" aria-hidden="true">
@@ -844,11 +1473,100 @@ function NoteCard({
           <path d="M27 14 C33 9 37 12 36 18 C30 19 27 18 27 14 Z" className="note-card__occlusion-leaf note-card__occlusion-leaf--sage" />
         </svg>
       </span>
+    </>
+  );
+}
+
+function NoteCard({
+  noteRef,
+  glowRef,
+  hidden,
+  note,
+  onClick,
+}: {
+  noteRef: RefObject<HTMLButtonElement>;
+  glowRef: RefObject<HTMLSpanElement>;
+  hidden: boolean;
+  note: NoteCopy;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      ref={noteRef}
+      type="button"
+      className="note-card note-card--trigger"
+      data-open="false"
+      data-overlay-open={hidden ? "true" : "false"}
+      aria-expanded={false}
+      aria-hidden={hidden}
+      aria-label="Open the romantic note"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
+    >
+      <NoteCardContents note={note} open={false} glowRef={glowRef} />
     </button>
   );
 }
 
+function ExpandedNoteCard({
+  note,
+  onClose,
+}: {
+  note: NoteCopy;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="note-card-overlay"
+      role="presentation"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
+    >
+      <span className="note-card-overlay__ornaments" aria-hidden="true">
+        <span className="note-card-overlay__ornament note-card-overlay__ornament--top-left">
+          <MiniBloomIcon className="note-card-overlay__icon" centerFill="#fff3ae" />
+        </span>
+        <span className="note-card-overlay__ornament note-card-overlay__ornament--top-right">
+          <MiniHeartIcon className="note-card-overlay__icon" />
+        </span>
+        <span className="note-card-overlay__ornament note-card-overlay__ornament--bottom-left">
+          <MiniSparkleIcon className="note-card-overlay__icon" />
+        </span>
+        <span className="note-card-overlay__ornament note-card-overlay__ornament--bottom-right">
+          <MiniBloomIcon className="note-card-overlay__icon" centerFill="#fff8c8" />
+        </span>
+      </span>
+      <button
+        type="button"
+        className="note-card note-card--expanded"
+        data-open="true"
+        aria-expanded="true"
+        aria-label="Close the romantic note"
+        onClick={(event) => {
+          event.stopPropagation();
+          onClose();
+        }}
+      >
+        <NoteCardContents note={note} open={true} />
+      </button>
+    </div>
+  );
+}
+
 export default function App() {
+  const getInitialReducedMotion = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const getInitialProfile = () =>
+    computePerformanceProfile(
+      getInitialReducedMotion(),
+      typeof window !== "undefined" ? window.innerWidth : 1440,
+      typeof navigator !== "undefined" ? (navigator as NavigatorWithDeviceMemory) : undefined,
+    );
   const root = useRef<HTMLDivElement>(null);
   const openingSceneRef = useRef<HTMLDivElement>(null);
   const bouquetRef = useRef<HTMLDivElement>(null);
@@ -856,20 +1574,18 @@ export default function App() {
   const cueRef = useRef<HTMLButtonElement>(null);
   const noteCardRef = useRef<HTMLButtonElement>(null);
   const noteGlowRef = useRef<HTMLSpanElement>(null);
-  const noteBaseRef = useRef<{ width: number; height: number; rotate: number } | null>(null);
   const noteReadyRef = useRef(false);
   const noteAnimatingRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("intro");
   const [isInteractive, setIsInteractive] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [secretNoteOpen, setSecretNoteOpen] = useState(false);
   const [openingStageSize, setOpeningStageSize] = useState({ width: 0, height: 0 });
-  const reducedMotion = useMemo(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    [],
-  );
+  const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
+  const [performanceProfile, setPerformanceProfile] = useState<PerformanceProfile>(getInitialProfile);
 
-  const pollen = useMemo(() => buildPollen(), []);
-  const bouquetHearts = useMemo(() => buildBouquetHearts(), []);
+  const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
+  const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
   const bouquetGlints = useMemo(() => buildBouquetGlints(), []);
   const openingFlowerConfigs = useMemo(
     () => flowerConfigs.filter((flower) => flower.showInOpening !== false),
@@ -878,6 +1594,10 @@ export default function App() {
   const bouquetFlowerConfigs = useMemo(
     () => flowerConfigs.filter((flower) => flower.showInBouquet !== false),
     [],
+  );
+  const secretFlowerConfig = useMemo(
+    () => bouquetFlowerConfigs.find((flower) => flower.id === secretFlowerId) ?? null,
+    [bouquetFlowerConfigs],
   );
   const flowerConfigById = useMemo(
     () => new Map(flowerConfigs.map((flower) => [flower.id, flower])),
@@ -958,6 +1678,50 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const navigatorInfo =
+      typeof navigator !== "undefined"
+        ? (navigator as NavigatorWithDeviceMemory)
+        : undefined;
+
+    const updateRuntimeProfile = () => {
+      const nextReducedMotion = motionQuery.matches;
+      const nextProfile = computePerformanceProfile(
+        nextReducedMotion,
+        window.innerWidth,
+        navigatorInfo,
+      );
+
+      setReducedMotion((current) =>
+        current === nextReducedMotion ? current : nextReducedMotion,
+      );
+      setPerformanceProfile((current) =>
+        current === nextProfile ? current : nextProfile,
+      );
+    };
+
+    updateRuntimeProfile();
+
+    const handleMotionChange = () => {
+      updateRuntimeProfile();
+    };
+
+    motionQuery.addEventListener?.("change", handleMotionChange);
+    motionQuery.addListener?.(handleMotionChange);
+    window.addEventListener("resize", updateRuntimeProfile);
+
+    return () => {
+      motionQuery.removeEventListener?.("change", handleMotionChange);
+      motionQuery.removeListener?.(handleMotionChange);
+      window.removeEventListener("resize", updateRuntimeProfile);
+    };
+  }, []);
+
   useGSAP(
     () => {
       const openingFlowers = gsap.utils.toArray<HTMLElement>(".flower--opening");
@@ -969,6 +1733,7 @@ export default function App() {
       const haloEls = gsap.utils.toArray<HTMLElement>(".bouquet-halo, .bouquet-mist");
       const heartEls = gsap.utils.toArray<HTMLElement>(".bouquet-heart");
       const glintEls = gsap.utils.toArray<HTMLElement>(".bouquet-glint");
+      const sitewideHeartLayer = root.current?.querySelector<HTMLElement>(".bouquet-hearts--sitewide");
       const bouquetFlowersFrame = root.current?.querySelector<HTMLElement>(".bouquet-flowers");
       const bouquetBounds = bouquetFlowersFrame?.getBoundingClientRect();
 
@@ -999,6 +1764,9 @@ export default function App() {
       gsap.set(centerGlowRef.current, { opacity: 0, scale: 0.72 });
       gsap.set(impactRings, { opacity: 0, scale: 0.96 });
       gsap.set(haloEls, { opacity: 0, scale: 0.86 });
+      if (sitewideHeartLayer) {
+        gsap.set(sitewideHeartLayer, { rotate: 0, xPercent: 0, yPercent: 0 });
+      }
       gsap.set(heartEls, {
         opacity: 0,
         x: (_index, target) => getHeartOrbitPoint(target, 0.9).x,
@@ -1053,158 +1821,198 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (phase !== "clustered" && phase !== "bouquet") {
-      return;
+    if (phase !== "bouquet") {
+      setSecretNoteOpen(false);
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    const sceneRoot = root.current;
+    const heartEls = gsap.utils.toArray<HTMLElement>(".bouquet-heart");
+
+    if (!sceneRoot || !heartEls.length) {
+      return undefined;
     }
 
-    const ctx = gsap.context(() => {
-      const bouquetFlowers = gsap.utils.toArray<HTMLElement>(".flower--bouquet");
-      const bouquetHeartEls = gsap.utils.toArray<HTMLElement>(".bouquet-heart");
-      const bouquetGlintsEls = gsap.utils.toArray<HTMLElement>(".bouquet-glint");
-      const isFinal = phase === "bouquet";
+    const heartPhaseSettings = getHeartPhaseSettings(phase, performanceProfile);
+    const profileMotionScale =
+      performanceProfile === "full"
+        ? 1
+        : performanceProfile === "balanced"
+          ? 0.82
+          : 0.64;
+    const metrics = {
+      width: 0,
+      height: 0,
+      bouquetCenterX: 0,
+      bouquetCenterY: 0,
+    };
+    const phaseCenterYRatio =
+      phase === "bouquet" || phase === "finishing"
+        ? 0.585
+        : phase === "clustered"
+          ? 0.58
+          : 0.54;
 
-      if (reducedMotion) {
-        gsap.set(bouquetHeartEls, {
-          opacity: (_index, target) => getHeartOpacity(target, isFinal ? 1.08 : 0.9),
-          x: (_index, target) => getHeartOrbitPoint(target, isFinal ? 1.04 : 0.92).x,
-          y: (_index, target) => getHeartOrbitPoint(target, isFinal ? 1.04 : 0.92).y,
-          scale: (_index, target) => getHeartScale(target, isFinal ? 1.06 : 0.98),
-          rotate: (_index, target) => getHeartRotate(target),
-        });
-        return;
-      }
+    const updateMetrics = () => {
+      const rect = sceneRoot.getBoundingClientRect();
 
-      bouquetFlowers.forEach((flower, index) => {
-        const layer = flower.dataset.layer ?? "mid";
-        const amplitude = isFinal
-          ? layer === "back"
-            ? 1.2
-            : layer === "mid"
-              ? 1.7
-              : 2.1
-          : layer === "back"
-            ? 0.65
-            : layer === "mid"
-              ? 0.9
-              : 1.15;
+      metrics.width = rect.width;
+      metrics.height = rect.height;
+      metrics.bouquetCenterX = rect.width / 2;
+      metrics.bouquetCenterY = rect.height * phaseCenterYRatio;
+    };
 
-        gsap.to(flower, {
-          yPercent: `+=${index % 2 === 0 ? -amplitude : amplitude}`,
-          rotate: `+=${index % 2 === 0 ? -(amplitude * 0.75) : amplitude * 0.75}`,
-          duration: (isFinal ? 3.8 : 4.6) + index * 0.18,
-          repeat: -1,
-          yoyo: true,
-          ease: motion.easeFloat,
-        });
+    updateMetrics();
+
+    const heartState = heartEls.map((heart) => ({
+      baseLeft: Number(heart.dataset.baseLeft ?? 50),
+      baseTop: Number(heart.dataset.baseTop ?? 50),
+      rotate: getHeartRotate(heart),
+      opacity: getHeartOpacity(heart),
+      duration: getHeartDuration(heart),
+      delay: getHeartDelay(heart),
+      orbitRadiusX: getHeartOrbitRadiusX(heart),
+      orbitRadiusY: getHeartOrbitRadiusY(heart),
+      orbitStart: getHeartOrbitStart(heart),
+      orbitDirection: getHeartOrbitDirection(heart),
+      wobbleX: getHeartWobbleX(heart),
+      wobbleY: getHeartWobbleY(heart),
+      scale: getHeartScale(heart),
+      currentX: Number(gsap.getProperty(heart, "x")) || 0,
+      currentY: Number(gsap.getProperty(heart, "y")) || 0,
+      currentScale: Number(gsap.getProperty(heart, "scale")) || 0.82,
+      currentRotate: Number(gsap.getProperty(heart, "rotation")) || getHeartRotate(heart),
+      currentOpacity: Number(gsap.getProperty(heart, "opacity")) || 0,
+      setX: gsap.quickSetter(heart, "x", "px"),
+      setY: gsap.quickSetter(heart, "y", "px"),
+      setScale: gsap.quickSetter(heart, "scale"),
+      setRotate: gsap.quickSetter(heart, "rotation", "deg"),
+      setOpacity: gsap.quickSetter(heart, "opacity"),
+    }));
+
+    if (reducedMotion) {
+      heartState.forEach((heart) => {
+        const basePoint = {
+          x: (metrics.width * heart.baseLeft) / 100 - metrics.bouquetCenterX,
+          y: (metrics.height * heart.baseTop) / 100 - metrics.bouquetCenterY,
+        };
+        const localRadians = (heart.orbitStart * Math.PI) / 180;
+        const localWave = (heart.orbitStart * Math.PI) / 90;
+        const targetX =
+          Math.cos(localRadians) * heart.orbitRadiusX * heartPhaseSettings.localOrbitScale +
+          Math.sin(localWave) * heart.wobbleX +
+          basePoint.x * 0.06 * heartPhaseSettings.bouquetOrbitStrength;
+        const targetY =
+          Math.sin(localRadians) * heart.orbitRadiusY * heartPhaseSettings.localOrbitScale +
+          Math.cos(localWave * 0.86) * heart.wobbleY +
+          basePoint.y * 0.06 * heartPhaseSettings.bouquetOrbitStrength;
+
+        heart.setX(targetX);
+        heart.setY(targetY);
+        heart.setScale(heart.scale * heartPhaseSettings.scaleMultiplier);
+        heart.setRotate(heart.rotate);
+        heart.setOpacity(heart.opacity * heartPhaseSettings.opacityMultiplier);
       });
 
-      bouquetHeartEls.forEach((heart, index) => {
-        const duration = getHeartDuration(heart) + (isFinal ? 0 : 4);
-        const baseRotate = getHeartRotate(heart);
-        const orbitScale = isFinal ? 1.04 : 0.92;
-        const orbitSteps = [60, 120, 180, 240, 300, 360];
-        const startPoint = getHeartOrbitPoint(heart, orbitScale);
+      return undefined;
+    }
 
-        gsap.set(heart, {
-          x: startPoint.x,
-          y: startPoint.y,
-          rotate: baseRotate,
-          scale: getHeartScale(heart, isFinal ? 1.02 : 0.94),
-          opacity: getHeartOpacity(heart, isFinal ? 0.98 : 0.82),
-        });
+    let previousTime = performance.now() / 1000;
 
-        const orbitTimeline = gsap.timeline({
-          repeat: -1,
-          delay: getHeartDelay(heart),
-          defaults: { ease: "none" },
-        });
+    const tick = () => {
+      const currentTime = performance.now() / 1000;
+      const deltaTime = Math.min(currentTime - previousTime, 0.05);
+      const motionEase = 1 - Math.exp(-deltaTime * 6.2);
+      const opacityEase = 1 - Math.exp(-deltaTime * 4.4);
+      const bouquetOrbitAngle = currentTime * heartPhaseSettings.bouquetOrbitSpeed;
 
-        orbitSteps.forEach((angleOffset, stepIndex) => {
-          const point = getHeartOrbitPoint(heart, orbitScale, angleOffset);
-          const shimmer = Math.sin((angleOffset * Math.PI) / 180);
+      previousTime = currentTime;
 
-          orbitTimeline.to(heart, {
-            x: point.x,
-            y: point.y,
-            rotate:
-              baseRotate +
-              shimmer * (isFinal ? 7 : 5.5) +
-              stepIndex * 0.45 * getHeartOrbitDirection(heart),
-            scale: getHeartScale(heart, (isFinal ? 1.03 : 0.95) + shimmer * 0.05),
-            opacity: getHeartOpacity(heart, (isFinal ? 1 : 0.86) + shimmer * 0.05),
-            duration: duration / orbitSteps.length,
-          });
-        });
+      heartState.forEach((heart, index) => {
+        const localDuration = heart.duration / Math.max(heartPhaseSettings.localSpeedMultiplier, 0.16);
+        const angleDegrees =
+          heart.orbitStart +
+          (((currentTime + heart.delay * 0.8) * 360) / localDuration) * heart.orbitDirection;
+        const radians = (angleDegrees * Math.PI) / 180;
+        const wave = (angleDegrees * Math.PI) / 90;
+        const localX =
+          Math.cos(radians) * heart.orbitRadiusX * heartPhaseSettings.localOrbitScale +
+          Math.sin(wave) * heart.wobbleX;
+        const localY =
+          Math.sin(radians) * heart.orbitRadiusY * heartPhaseSettings.localOrbitScale +
+          Math.cos(wave * 0.86) * heart.wobbleY;
+        const baseX = (metrics.width * heart.baseLeft) / 100;
+        const baseY = (metrics.height * heart.baseTop) / 100;
+        const baseDx = baseX - metrics.bouquetCenterX;
+        const baseDy = baseY - metrics.bouquetCenterY;
+        const cosOrbit = Math.cos(bouquetOrbitAngle);
+        const sinOrbit = Math.sin(bouquetOrbitAngle);
+        const rotatedDx = baseDx * cosOrbit - baseDy * sinOrbit;
+        const rotatedDy = baseDx * sinOrbit + baseDy * cosOrbit;
+        const bouquetOrbitX =
+          (rotatedDx - baseDx) * heartPhaseSettings.bouquetOrbitStrength;
+        const bouquetOrbitY =
+          (rotatedDy - baseDy) * heartPhaseSettings.bouquetOrbitStrength;
+        const shimmer = Math.sin(radians + index * 0.12);
+        const targetX = localX + bouquetOrbitX;
+        const targetY = localY + bouquetOrbitY;
+        const targetScale =
+          heart.scale *
+          heartPhaseSettings.scaleMultiplier *
+          (1 + shimmer * 0.03 * profileMotionScale);
+        const targetRotate = heart.rotate + shimmer * (phase === "bouquet" ? 5.2 : 4.1);
+        const targetOpacity =
+          heart.opacity *
+          heartPhaseSettings.opacityMultiplier *
+          (0.94 + shimmer * 0.04 * profileMotionScale);
+
+        heart.currentX = lerp(heart.currentX, targetX, motionEase);
+        heart.currentY = lerp(heart.currentY, targetY, motionEase);
+        heart.currentScale = lerp(heart.currentScale, targetScale, motionEase);
+        heart.currentRotate = lerp(heart.currentRotate, targetRotate, motionEase);
+        heart.currentOpacity = lerp(heart.currentOpacity, targetOpacity, opacityEase);
+
+        heart.setX(heart.currentX);
+        heart.setY(heart.currentY);
+        heart.setScale(heart.currentScale);
+        heart.setRotate(heart.currentRotate);
+        heart.setOpacity(heart.currentOpacity);
       });
+    };
 
-      gsap.to(".bouquet-halo", {
-        scale: isFinal ? 1.04 : 1.018,
-        opacity: isFinal ? 0.86 : 0.64,
-        duration: isFinal ? 4.2 : 4.8,
-        repeat: -1,
-        yoyo: true,
-        ease: motion.easeFloat,
-      });
+    window.addEventListener("resize", updateMetrics);
+    tick();
+    gsap.ticker.add(tick);
 
-      gsap.to(".bouquet-mist", {
-        scale: isFinal ? 1.08 : 1.04,
-        opacity: isFinal ? 0.58 : 0.36,
-        duration: isFinal ? 4.8 : 5.3,
-        repeat: -1,
-        yoyo: true,
-        ease: motion.easeFloat,
-      });
-
-      if (isFinal) {
-        gsap.to(".bouquet-wrap", {
-          yPercent: -1.2,
-          duration: 4.6,
-          repeat: -1,
-          yoyo: true,
-          ease: motion.easeFloat,
-        });
-
-        bouquetGlintsEls.forEach((glint, index) => {
-          gsap.to(glint, {
-            opacity: 0.85,
-            scale: 1,
-            duration: 0.4,
-            repeat: -1,
-            repeatDelay: 2.1 + index * 0.28,
-            yoyo: true,
-            ease: motion.easeFloat,
-            delay: index * 0.34,
-          });
-        });
-      }
-    }, root);
-
-    return () => ctx.revert();
-  }, [phase, reducedMotion]);
+    return () => {
+      window.removeEventListener("resize", updateMetrics);
+      gsap.ticker.remove(tick);
+    };
+  }, [phase, reducedMotion, performanceProfile, bouquetHearts]);
 
   useEffect(() => {
     const noteCard = noteCardRef.current;
     const noteGlow = noteGlowRef.current;
 
-    if (!noteCard || !noteGlow) {
-      return;
-    }
-
     if (phase !== "bouquet") {
       noteReadyRef.current = false;
       noteAnimatingRef.current = false;
-      noteBaseRef.current = null;
       setNoteOpen(false);
-      gsap.set(noteCard, {
-        opacity: 0,
-        x: 0,
-        y: 20,
-        scale: 0.82,
-        rotate: -22,
-        width: "",
-        height: "",
-      });
-      gsap.set(noteGlow, { opacity: 0, scale: 0.8 });
+      if (noteCard && noteGlow) {
+        gsap.set(noteCard, {
+          opacity: 0,
+          x: 0,
+          y: 20,
+          scale: 0.82,
+          rotate: -22,
+        });
+        gsap.set(noteGlow, { opacity: 0, scale: 0.8 });
+      }
+      return;
+    }
+
+    if (!noteCard || !noteGlow) {
       return;
     }
 
@@ -1213,11 +2021,6 @@ export default function App() {
     if (reducedMotion) {
       gsap.set(noteCard, { opacity: 1, x: 0, y: 0, scale: 1, rotate: -18 });
       gsap.set(noteGlow, { opacity: 0.26, scale: 1 });
-      noteBaseRef.current = {
-        width: noteCard.getBoundingClientRect().width,
-        height: noteCard.getBoundingClientRect().height,
-        rotate: -18,
-      };
       noteReadyRef.current = true;
       return;
     }
@@ -1228,11 +2031,6 @@ export default function App() {
       .timeline({
         defaults: { ease: motion.easeSettle },
         onComplete: () => {
-          noteBaseRef.current = {
-            width: noteCard.getBoundingClientRect().width,
-            height: noteCard.getBoundingClientRect().height,
-            rotate: Number(gsap.getProperty(noteCard, "rotate")) || -7,
-          };
           noteReadyRef.current = true;
           noteAnimatingRef.current = false;
         },
@@ -1269,128 +2067,46 @@ export default function App() {
       );
   }, [phase, reducedMotion]);
 
-  const animateNoteCard = (open: boolean) => {
-    const noteCard = noteCardRef.current;
-    const noteGlow = noteGlowRef.current;
-
-    if (!noteCard || !noteGlow) {
-      return;
-    }
-
-    gsap.killTweensOf([noteCard, noteGlow]);
-
-    const currentX = Number(gsap.getProperty(noteCard, "x")) || 0;
-    const currentY = Number(gsap.getProperty(noteCard, "y")) || 0;
-    const currentRect = noteCard.getBoundingClientRect();
-    const base = noteBaseRef.current ?? {
-      width: currentRect.width,
-      height: currentRect.height,
-      rotate: Number(gsap.getProperty(noteCard, "rotate")) || -7,
-    };
-    const targetWidth = Math.min(window.innerWidth - 32, 420);
-    const targetHeight = Math.min(window.innerHeight * 0.56, 320);
-    const targetCenterX = window.innerWidth / 2;
-    const targetCenterY = window.innerHeight * 0.57;
-    const currentCenterX = currentRect.left + currentRect.width / 2;
-    const currentCenterY = currentRect.top + currentRect.height / 2;
-    const deltaX = targetCenterX - currentCenterX;
-    const deltaY = targetCenterY - currentCenterY;
-
-    noteAnimatingRef.current = true;
-
-    const timeline = gsap.timeline({
-      defaults: { ease: motion.easeGather },
-      onComplete: () => {
-        noteAnimatingRef.current = false;
-      },
-    });
-
-    if (open) {
-      timeline
-        .to(
-          noteGlow,
-          {
-            opacity: 0.34,
-            scale: 1.12,
-            duration: 0.34,
-            ease: motion.easeReveal,
-          },
-          0,
-        )
-        .to(
-          noteCard,
-          {
-            x: currentX + deltaX,
-            y: currentY + deltaY,
-            width: targetWidth,
-            height: targetHeight,
-            rotate: -1.5,
-            duration: reducedMotion ? 0.01 : 0.84,
-          },
-          0,
-        )
-        .to(
-          noteGlow,
-          {
-            opacity: 0.18,
-            scale: 1.04,
-            duration: 0.46,
-          },
-          0.38,
-        );
-      return;
-    }
-
-    timeline
-      .to(
-        noteGlow,
-        {
-          opacity: 0.28,
-          scale: 1,
-          duration: motion.quick,
-          ease: motion.easeReveal,
-        },
-        0,
-      )
-      .to(
-        noteCard,
-        {
-          x: 0,
-          y: 0,
-          width: base.width,
-          height: base.height,
-          rotate: base.rotate,
-          duration: reducedMotion ? 0.01 : 0.74,
-        },
-        0,
-      )
-      .to(
-        noteGlow,
-        {
-          opacity: 0.12,
-          duration: 0.38,
-        },
-        0.24,
-      );
-  };
-
-  const toggleNoteCard = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-
+  const toggleNoteCard = () => {
     if (phase !== "bouquet" || !noteReadyRef.current || noteAnimatingRef.current) {
       return;
     }
 
     const nextOpen = !noteOpen;
+    if (nextOpen) {
+      setSecretNoteOpen(false);
+    }
     setNoteOpen(nextOpen);
-    animateNoteCard(nextOpen);
+  };
+
+  const toggleSecretFlowerNote = (event: ReactMouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+
+    if (phase !== "bouquet") {
+      return;
+    }
+
+    setSecretNoteOpen((current) => !current);
+  };
+
+  const handleSecretFlowerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (phase !== "bouquet") {
+      return;
+    }
+
+    setSecretNoteOpen((current) => !current);
   };
 
   const runArrangeSequence = () => {
     const openingFlowers = gsap.utils.toArray<HTMLElement>(".flower--opening");
-    const openingFlowerParts = gsap.utils.toArray<HTMLElement | SVGElement>(
-      ".flower--opening .flower__head, .flower--opening .flower-svg, .flower--opening .flower__stem--opening",
-    );
+    const openingFlowerParts = gsap.utils.toArray<HTMLElement>(".flower--opening .flower__motion");
     const bouquetBackFlowers = gsap.utils.toArray<HTMLElement>('.flower--bouquet[data-layer="back"]');
     const bouquetMidFlowers = gsap.utils.toArray<HTMLElement>('.flower--bouquet[data-layer="mid"]');
     const bouquetFrontFlowers = gsap.utils.toArray<HTMLElement>('.flower--bouquet[data-layer="front"]');
@@ -1437,19 +2153,6 @@ export default function App() {
         .to(bouquetRef.current, { opacity: 1, scale: 1, yPercent: 0, duration: 0.32 }, 0.08)
         .to(centerGlowRef.current, { opacity: 0.12, scale: 0.92, duration: 0.22 }, 0.1)
         .to(haloEls, { opacity: (_index) => (_index === 0 ? 0.5 : 0.2), scale: 1, duration: 0.32 }, 0.12)
-        .to(
-          heartEls,
-          {
-            opacity: (_index, target) => getHeartOpacity(target, 0.84),
-            x: (_index, target) => getHeartOrbitPoint(target, 0.92).x,
-            y: (_index, target) => getHeartOrbitPoint(target, 0.92).y,
-            scale: (_index, target) => getHeartScale(target, 0.98),
-            rotate: (_index, target) => getHeartRotate(target),
-            duration: 0.26,
-            stagger: 0.018,
-          },
-          0.18,
-        )
         .to(
           openingFlowers,
           {
@@ -1640,20 +2343,6 @@ export default function App() {
           0.4,
         )
         .to(
-          heartEls,
-          {
-            opacity: (_index, target) => getHeartOpacity(target, 0.88),
-            x: (_index, target) => getHeartOrbitPoint(target, 0.92).x,
-            y: (_index, target) => getHeartOrbitPoint(target, 0.92).y,
-            scale: (_index, target) => getHeartScale(target, 1.02),
-            rotate: (_index, target) => getHeartRotate(target),
-            duration: 0.62,
-            stagger: { each: 0.03, from: "random" },
-            ease: motion.easeReveal,
-          },
-          0.54,
-        )
-        .to(
           clusterBotanicalPieces,
           {
           opacity: 0.9,
@@ -1840,19 +2529,6 @@ export default function App() {
         .to(bouquetRef.current, { opacity: 1, scale: 1, yPercent: 0, duration: 0.24 }, 0)
         .to(centerGlowRef.current, { opacity: 0.1, scale: 0.92, duration: 0.18 }, 0.05)
         .to(haloEls, { opacity: (_index) => (_index === 0 ? 0.56 : 0.22), scale: 1, duration: 0.3 }, 0.04)
-        .to(
-          heartEls,
-          {
-            opacity: (_index, target) => getHeartOpacity(target, 1),
-            x: (_index, target) => getHeartOrbitPoint(target, 1.04).x,
-            y: (_index, target) => getHeartOrbitPoint(target, 1.04).y,
-            scale: (_index, target) => getHeartScale(target, 1.06),
-            rotate: (_index, target) => getHeartRotate(target),
-            duration: 0.26,
-            stagger: 0.016,
-          },
-          0.12,
-        )
         .to(clusterBotanicalPieces, { opacity: 0, scaleY: 0.96, y: 4, duration: 0.22, stagger: 0.01 }, 0.08)
         .to(finalBotanicalPieces, { opacity: 0.92, scaleY: 1, y: 0, duration: 0.28, stagger: 0.01 }, 0.12)
         .to(
@@ -1921,20 +2597,6 @@ export default function App() {
           stagger: 0.05,
           },
           0.18,
-        )
-        .to(
-          heartEls,
-          {
-            opacity: (_index, target) => getHeartOpacity(target, 1.02),
-            x: (_index, target) => getHeartOrbitPoint(target, 1.04).x,
-            y: (_index, target) => getHeartOrbitPoint(target, 1.04).y,
-            scale: (_index, target) => getHeartScale(target, 1.08),
-            rotate: (_index, target) => getHeartRotate(target) + (_index % 2 === 0 ? -3 : 3),
-            duration: 0.52,
-            stagger: 0.03,
-            ease: motion.easeReveal,
-          },
-          0.2,
         )
         .to(
           clusterBotanicalPieces,
@@ -2052,6 +2714,7 @@ export default function App() {
     <div
       className={`site phase-${phase}`}
       data-interactive={isInteractive}
+      data-performance-profile={performanceProfile}
       ref={root}
       onClick={triggerSequence}
       role="presentation"
@@ -2079,6 +2742,42 @@ export default function App() {
         ))}
       </div>
 
+      <div className="bouquet-hearts bouquet-hearts--sitewide" aria-hidden="true">
+        {bouquetHearts.map((heart) => (
+          <span
+            key={heart.id}
+            className="bouquet-heart"
+            data-base-left={heart.left}
+            data-base-top={heart.top}
+            data-opacity={heart.opacity}
+            data-scale={heart.scale}
+            data-rotate={heart.rotate}
+            data-orbit-radius-x={heart.orbitRadiusX}
+            data-orbit-radius-y={heart.orbitRadiusY}
+            data-orbit-start={heart.orbitStart}
+            data-orbit-direction={heart.orbitDirection}
+            data-wobble-x={heart.wobbleX}
+            data-wobble-y={heart.wobbleY}
+            data-duration={heart.duration}
+            data-delay={heart.delay}
+            style={
+              {
+                left: `${heart.left}%`,
+                top: `${heart.top}%`,
+                width: `${heart.size * 1.12}px`,
+                height: `${heart.size * 1.12}px`,
+                color: heart.color,
+                "--heart-glow-color": heart.color,
+              } as CSSProperties
+            }
+          >
+            <svg className="bouquet-heart__svg" viewBox="0 0 100 90" role="presentation" aria-hidden="true">
+              <path d="M50 86 C46 83 40 78 35 73 C16 56 4 43 4 26 C4 11 15 0 30 0 C39 0 46 4 50 12 C54 4 61 0 70 0 C85 0 96 11 96 26 C96 43 84 56 65 73 C60 78 54 83 50 86 Z" fill="currentColor" />
+            </svg>
+          </span>
+        ))}
+      </div>
+
       <div className="center-glow" ref={centerGlowRef} />
 
       <div className="fx-layer" aria-hidden="true">
@@ -2096,39 +2795,6 @@ export default function App() {
       <div className="bouquet-scene" ref={bouquetRef}>
         <div className="bouquet-halo" />
         <div className="bouquet-mist" />
-        <div className="bouquet-hearts" aria-hidden="true">
-          {bouquetHearts.map((heart) => (
-            <span
-              key={heart.id}
-              className="bouquet-heart"
-              data-opacity={heart.opacity}
-              data-scale={heart.scale}
-              data-rotate={heart.rotate}
-              data-orbit-radius-x={heart.orbitRadiusX}
-              data-orbit-radius-y={heart.orbitRadiusY}
-              data-orbit-start={heart.orbitStart}
-              data-orbit-direction={heart.orbitDirection}
-              data-wobble-x={heart.wobbleX}
-              data-wobble-y={heart.wobbleY}
-              data-duration={heart.duration}
-              data-delay={heart.delay}
-              style={
-                {
-                  left: `${heart.left}%`,
-                  top: `${heart.top}%`,
-                  width: `${heart.size}px`,
-                  height: `${heart.size}px`,
-                  color: heart.color,
-                  "--heart-glow-color": heart.color,
-                } as CSSProperties
-              }
-            >
-              <svg className="bouquet-heart__svg" viewBox="0 0 100 90" role="presentation" aria-hidden="true">
-                <path d="M50 86 C46 83 40 78 35 73 C16 56 4 43 4 26 C4 11 15 0 30 0 C39 0 46 4 50 12 C54 4 61 0 70 0 C85 0 96 11 96 26 C96 43 84 56 65 73 C60 78 54 83 50 86 Z" fill="currentColor" />
-              </svg>
-            </span>
-          ))}
-        </div>
         <div className="bouquet-glints" aria-hidden="true">
           {bouquetGlints.map((glint) => (
             <span
@@ -2149,17 +2815,42 @@ export default function App() {
         <div className="bouquet-flowers">
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="cluster" />
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="bouquet" />
-          {bouquetFlowerConfigs.map((flower) => (
-            <Flower key={`bouquet-${flower.id}`} flower={flower} mode="bouquet" />
-          ))}
+          {bouquetFlowerConfigs.map((flower) => {
+            const isSecretTarget = phase === "bouquet" && flower.id === secretFlowerId;
+
+            return (
+              <Flower
+                key={`bouquet-${flower.id}`}
+                flower={flower}
+                mode="bouquet"
+                isSecretFlower={isSecretTarget}
+                secretOpen={isSecretTarget && secretNoteOpen}
+                onClick={isSecretTarget ? toggleSecretFlowerNote : undefined}
+                onKeyDown={isSecretTarget ? handleSecretFlowerKeyDown : undefined}
+              />
+            );
+          })}
         </div>
+        {secretFlowerConfig ? (
+          <SecretFlowerNote
+            flower={secretFlowerConfig}
+            open={phase === "bouquet" && secretNoteOpen}
+            note={secretNote}
+          />
+        ) : null}
         <NoteCard
           noteRef={noteCardRef}
           glowRef={noteGlowRef}
-          open={noteOpen}
+          hidden={phase === "bouquet" && noteOpen}
           note={romanticNote}
           onClick={toggleNoteCard}
         />
+        {phase === "bouquet" && noteOpen ? (
+          <ExpandedNoteCard
+            note={romanticNote}
+            onClose={toggleNoteCard}
+          />
+        ) : null}
         <BouquetWrap />
       </div>
 

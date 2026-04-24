@@ -16,7 +16,10 @@ export type FlowerVariant =
   | "lavender-pinwheel"
   | "cream-layered-rose"
   | "blue-heart-posy"
-  | "red-poppy-burst";
+  | "red-poppy-burst"
+  | "peach-wild-aster"
+  | "butter-cosmos-bloom"
+  | "rosebud-side-sprig";
 
 export type PaletteName =
   | "cobalt"
@@ -65,6 +68,15 @@ export type FlowerConfig = {
   showOpeningStem?: boolean;
   openingStemTop?: number;
   openingStemHeight?: number;
+  openingStemLeft?: number;
+  openingStemWidth?: number;
+  openingHoverTilt?: number;
+  openingHoverSway?: number;
+  openingHoverLift?: number;
+  openingHoverDuration?: number;
+  openingMotionOriginX?: number;
+  bouquetStemAttachX?: number;
+  bouquetStemAttachY?: number;
   isCenterMessage?: boolean;
 };
 
@@ -481,25 +493,244 @@ const baseFlowerConfigs: FlowerConfig[] = [
     clusterScale: 0.76,
     showOpeningStem: true,
   },
+  {
+    id: "f-17",
+    variant: "butter-cosmos-bloom",
+    palette: "butter",
+    bouquetRole: "opening-only",
+    motionWeight: "heavy",
+    size: 17,
+    startX: -4,
+    startY: 28,
+    startRotation: 12,
+    depth: 0.86,
+    bouquetTargetX: -32,
+    bouquetTargetY: 8,
+    bouquetRotation: -10,
+    bouquetLayer: "back",
+    bouquetScale: 0.7,
+    clusterTargetX: 18,
+    clusterTargetY: 42,
+    clusterRotation: -11,
+    clusterScale: 0.72,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.9,
+    openingHoverSway: 0.26,
+    openingHoverLift: 0.29,
+    openingHoverDuration: 2.02,
+    openingMotionOriginX: 53,
+  },
+  {
+    id: "f-18",
+    variant: "peach-wild-aster",
+    palette: "orange",
+    bouquetRole: "opening-only",
+    motionWeight: "medium",
+    size: 13,
+    startX: 41,
+    startY: -3,
+    startRotation: -7,
+    depth: 0.64,
+    bouquetTargetX: -2,
+    bouquetTargetY: -26,
+    bouquetRotation: -6,
+    bouquetLayer: "back",
+    bouquetScale: 0.64,
+    clusterTargetX: 46,
+    clusterTargetY: 16,
+    clusterRotation: -5,
+    clusterScale: 0.58,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.45,
+    openingHoverSway: 0.18,
+    openingHoverLift: 0.2,
+    openingHoverDuration: 1.66,
+    openingMotionOriginX: 48,
+  },
+  {
+    id: "f-19",
+    variant: "rosebud-side-sprig",
+    palette: "blush",
+    bouquetRole: "opening-only",
+    motionWeight: "medium",
+    size: 15,
+    startX: 103,
+    startY: 47,
+    startRotation: -11,
+    depth: 0.68,
+    bouquetTargetX: 30,
+    bouquetTargetY: -4,
+    bouquetRotation: 12,
+    bouquetLayer: "mid",
+    bouquetScale: 0.68,
+    clusterTargetX: 78,
+    clusterTargetY: 44,
+    clusterRotation: 11,
+    clusterScale: 0.62,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.52,
+    openingHoverSway: 0.2,
+    openingHoverLift: 0.22,
+    openingHoverDuration: 1.74,
+    openingMotionOriginX: 46,
+  },
+  {
+    id: "f-20",
+    variant: "butter-cosmos-bloom",
+    palette: "cream",
+    bouquetRole: "opening-only",
+    motionWeight: "heavy",
+    size: 16,
+    startX: 84,
+    startY: 104,
+    startRotation: 10,
+    depth: 0.8,
+    bouquetTargetX: 14,
+    bouquetTargetY: 20,
+    bouquetRotation: -8,
+    bouquetLayer: "front",
+    bouquetScale: 0.72,
+    clusterTargetX: 62,
+    clusterTargetY: 74,
+    clusterRotation: -8,
+    clusterScale: 0.68,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.85,
+    openingHoverSway: 0.24,
+    openingHoverLift: 0.27,
+    openingHoverDuration: 1.98,
+    openingMotionOriginX: 51,
+  },
+  {
+    id: "f-21",
+    variant: "peach-wild-aster",
+    palette: "blush",
+    bouquetRole: "opening-only",
+    motionWeight: "light",
+    size: 12,
+    startX: 34,
+    startY: 23,
+    startRotation: 5,
+    depth: 0.58,
+    bouquetTargetX: -14,
+    bouquetTargetY: -12,
+    bouquetRotation: -5,
+    bouquetLayer: "mid",
+    bouquetScale: 0.6,
+    clusterTargetX: 32,
+    clusterTargetY: 32,
+    clusterRotation: -5,
+    clusterScale: 0.54,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.12,
+    openingHoverSway: 0.14,
+    openingHoverLift: 0.16,
+    openingHoverDuration: 1.44,
+    openingMotionOriginX: 49,
+  },
+  {
+    id: "f-22",
+    variant: "rosebud-side-sprig",
+    palette: "lavender",
+    bouquetRole: "opening-only",
+    motionWeight: "light",
+    size: 13,
+    startX: 88,
+    startY: 55,
+    startRotation: -9,
+    depth: 0.6,
+    bouquetTargetX: 18,
+    bouquetTargetY: -10,
+    bouquetRotation: 7,
+    bouquetLayer: "mid",
+    bouquetScale: 0.62,
+    clusterTargetX: 66,
+    clusterTargetY: 48,
+    clusterRotation: 6,
+    clusterScale: 0.56,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.18,
+    openingHoverSway: 0.15,
+    openingHoverLift: 0.17,
+    openingHoverDuration: 1.48,
+    openingMotionOriginX: 47,
+  },
+  {
+    id: "f-23",
+    variant: "butter-cosmos-bloom",
+    palette: "cream",
+    bouquetRole: "opening-only",
+    motionWeight: "medium",
+    size: 12,
+    startX: 39,
+    startY: 73,
+    startRotation: -6,
+    depth: 0.66,
+    bouquetTargetX: -8,
+    bouquetTargetY: 10,
+    bouquetRotation: -4,
+    bouquetLayer: "back",
+    bouquetScale: 0.62,
+    clusterTargetX: 42,
+    clusterTargetY: 68,
+    clusterRotation: -4,
+    clusterScale: 0.58,
+    showOpeningStem: true,
+    showInBouquet: false,
+    openingHoverTilt: 1.34,
+    openingHoverSway: 0.18,
+    openingHoverLift: 0.19,
+    openingHoverDuration: 1.7,
+    openingMotionOriginX: 50,
+  },
 ];
 
-const openingStemTuningById: Record<string, Pick<FlowerConfig, "openingStemTop" | "openingStemHeight">> = {
-  "f-1": { openingStemTop: 39, openingStemHeight: 138 },
-  "f-2": { openingStemTop: 41, openingStemHeight: 133 },
-  "f-3": { openingStemTop: 40, openingStemHeight: 134 },
-  "f-4": { openingStemTop: 41, openingStemHeight: 133 },
-  "f-5": { openingStemTop: 30, openingStemHeight: 146 },
-  "f-6": { openingStemTop: 40, openingStemHeight: 136 },
-  "f-7": { openingStemTop: 39, openingStemHeight: 137 },
-  "f-8": { openingStemTop: 42, openingStemHeight: 130 },
-  "f-9": { openingStemTop: 36, openingStemHeight: 138 },
-  "f-10": { openingStemTop: 31, openingStemHeight: 144 },
-  "f-11": { openingStemTop: 40, openingStemHeight: 137 },
-  "f-12": { openingStemTop: 39, openingStemHeight: 140 },
-  "f-13": { openingStemTop: 42, openingStemHeight: 132 },
-  "f-14": { openingStemTop: 32, openingStemHeight: 144 },
-  "f-15": { openingStemTop: 38, openingStemHeight: 141 },
-  "f-16": { openingStemTop: 40, openingStemHeight: 136 },
+const openingStemTuningById: Record<
+  string,
+  Pick<
+    FlowerConfig,
+    | "openingStemTop"
+    | "openingStemHeight"
+    | "openingStemLeft"
+    | "openingStemWidth"
+    | "openingHoverTilt"
+    | "openingHoverSway"
+    | "openingHoverLift"
+    | "openingHoverDuration"
+    | "openingMotionOriginX"
+    | "bouquetStemAttachX"
+    | "bouquetStemAttachY"
+  >
+> = {
+  "f-1": { openingStemTop: 37, openingStemHeight: 140, openingStemLeft: 49, openingStemWidth: 68, openingHoverTilt: 1.6, openingHoverSway: 0.22, openingHoverLift: 0.24, openingHoverDuration: 1.88, openingMotionOriginX: 49, bouquetStemAttachX: -0.8, bouquetStemAttachY: 4.8 },
+  "f-2": { openingStemTop: 37, openingStemHeight: 136, openingStemLeft: 50, openingStemWidth: 66, bouquetStemAttachX: 0.4, bouquetStemAttachY: 4.4 },
+  "f-3": { openingStemTop: 38, openingStemHeight: 136, openingStemLeft: 50, openingStemWidth: 67, bouquetStemAttachX: -0.2, bouquetStemAttachY: 4.6 },
+  "f-4": { openingStemTop: 38, openingStemHeight: 136, openingStemLeft: 50.5, openingStemWidth: 67, bouquetStemAttachX: 0.6, bouquetStemAttachY: 4.6 },
+  "f-5": { openingStemTop: 24, openingStemHeight: 152, openingStemLeft: 50, openingStemWidth: 70, openingHoverTilt: 1.35, openingHoverSway: 0.16, openingHoverLift: 0.18, openingHoverDuration: 1.5, openingMotionOriginX: 50, bouquetStemAttachX: -0.4, bouquetStemAttachY: 5.6 },
+  "f-6": { openingStemTop: 37, openingStemHeight: 138, openingStemLeft: 49, openingStemWidth: 66, bouquetStemAttachX: -0.8, bouquetStemAttachY: 4.8 },
+  "f-7": { openingStemTop: 36, openingStemHeight: 140, openingStemLeft: 50, openingStemWidth: 67, bouquetStemAttachX: -0.5, bouquetStemAttachY: 4.8 },
+  "f-8": { openingStemTop: 39, openingStemHeight: 134, openingStemLeft: 51, openingStemWidth: 64, openingHoverTilt: 1.8, openingHoverSway: 0.24, openingHoverLift: 0.28, openingHoverDuration: 2, openingMotionOriginX: 51, bouquetStemAttachX: 0.9, bouquetStemAttachY: 5.2 },
+  "f-9": { openingStemTop: 31, openingStemHeight: 146, openingStemLeft: 49.5, openingStemWidth: 70, openingHoverTilt: 1.16, openingHoverSway: 0.14, openingHoverLift: 0.16, openingHoverDuration: 1.46, openingMotionOriginX: 49.5, bouquetStemAttachX: 0.3, bouquetStemAttachY: 4.4 },
+  "f-10": { openingStemTop: 28, openingStemHeight: 148, openingStemLeft: 51, openingStemWidth: 68, bouquetStemAttachX: -0.6, bouquetStemAttachY: 4.2 },
+  "f-11": { openingStemTop: 37, openingStemHeight: 140, openingStemLeft: 50, openingStemWidth: 67, bouquetStemAttachX: -0.4, bouquetStemAttachY: 4.8 },
+  "f-12": { openingStemTop: 34, openingStemHeight: 145, openingStemLeft: 50, openingStemWidth: 69, openingHoverTilt: 1.2, openingHoverSway: 0.15, openingHoverLift: 0.17, openingHoverDuration: 1.5, openingMotionOriginX: 50, bouquetStemAttachX: 0.1, bouquetStemAttachY: 4.4 },
+  "f-13": { openingStemTop: 39, openingStemHeight: 136, openingStemLeft: 51, openingStemWidth: 65, openingHoverTilt: 1.95, openingHoverSway: 0.27, openingHoverLift: 0.3, openingHoverDuration: 2.08, openingMotionOriginX: 51, bouquetStemAttachX: 0.7, bouquetStemAttachY: 5.6 },
+  "f-14": { openingStemTop: 27, openingStemHeight: 151, openingStemLeft: 49.5, openingStemWidth: 70, openingHoverTilt: 1.28, openingHoverSway: 0.15, openingHoverLift: 0.18, openingHoverDuration: 1.48, openingMotionOriginX: 49.5, bouquetStemAttachX: 0.5, bouquetStemAttachY: 4.6 },
+  "f-15": { openingStemTop: 34, openingStemHeight: 146, openingStemLeft: 50, openingStemWidth: 68, bouquetStemAttachX: 0.2, bouquetStemAttachY: 4.1 },
+  "f-16": { openingStemTop: 37, openingStemHeight: 139, openingStemLeft: 50, openingStemWidth: 66, openingHoverTilt: 1.78, openingHoverSway: 0.24, openingHoverLift: 0.27, openingHoverDuration: 1.96, openingMotionOriginX: 50, bouquetStemAttachX: -0.2, bouquetStemAttachY: 5.4 },
+  "f-17": { openingStemTop: 38, openingStemHeight: 138, openingStemLeft: 53, openingStemWidth: 67, bouquetStemAttachX: 0.2, bouquetStemAttachY: 4.8 },
+  "f-18": { openingStemTop: 36, openingStemHeight: 142, openingStemLeft: 48, openingStemWidth: 65, bouquetStemAttachX: -0.1, bouquetStemAttachY: 4.8 },
+  "f-19": { openingStemTop: 31, openingStemHeight: 149, openingStemLeft: 46, openingStemWidth: 62, bouquetStemAttachX: 0.2, bouquetStemAttachY: 4.6 },
+  "f-20": { openingStemTop: 39, openingStemHeight: 137, openingStemLeft: 51, openingStemWidth: 66, bouquetStemAttachX: 0.4, bouquetStemAttachY: 5 },
+  "f-21": { openingStemTop: 36, openingStemHeight: 143, openingStemLeft: 49, openingStemWidth: 64, bouquetStemAttachX: -0.1, bouquetStemAttachY: 4.5 },
+  "f-22": { openingStemTop: 30, openingStemHeight: 147, openingStemLeft: 47, openingStemWidth: 63, bouquetStemAttachX: 0.3, bouquetStemAttachY: 4.7 },
+  "f-23": { openingStemTop: 39, openingStemHeight: 136, openingStemLeft: 50, openingStemWidth: 66, bouquetStemAttachX: 0.2, bouquetStemAttachY: 4.9 },
 };
 
 export const flowerConfigs: FlowerConfig[] = baseFlowerConfigs.map((flower) => ({
@@ -510,17 +741,42 @@ export const flowerConfigs: FlowerConfig[] = baseFlowerConfigs.map((flower) => (
 const openingFlowerWidthPercentUnit = 0.94;
 
 export function getFlowerStyle(flower: FlowerConfig): CSSProperties {
+  const hoverDirection = flower.startRotation >= 0 ? 1 : -1;
+  const defaultHoverTilt = 1.05 + flower.depth * 0.9;
+  const defaultHoverSway = 0.1 + flower.depth * 0.09;
+  const defaultHoverLift = 0.12 + flower.depth * 0.1;
+  const defaultHoverDuration =
+    flower.motionWeight === "heavy"
+      ? 1.92
+      : flower.motionWeight === "medium"
+        ? 1.68
+        : 1.46;
+  const defaultHoverDelay = -(
+    flower.depth * 0.85 +
+    (flower.motionWeight === "heavy"
+      ? 0.36
+      : flower.motionWeight === "medium"
+        ? 0.18
+        : 0.08)
+  );
+
   return {
     left: `${flower.startX}%`,
     top: `${flower.startY}%`,
     width: `${(flower.size * openingFlowerWidthPercentUnit).toFixed(3)}%`,
     zIndex: Math.round(40 + flower.depth * 30),
     "--depth": String(flower.depth),
-    "--hover-tilt-direction": String(flower.startRotation >= 0 ? 1 : -1),
-    "--hover-lift": `${(0.14 + flower.depth * 0.14).toFixed(3)}rem`,
-    "--hover-stem-shift": `${(0.08 + flower.depth * 0.1).toFixed(3)}rem`,
+    "--hover-tilt-direction": String(hoverDirection),
     "--opening-stem-top": `${flower.openingStemTop ?? 56}%`,
     "--opening-stem-height": `${flower.openingStemHeight ?? 132}%`,
+    "--opening-stem-left": `${flower.openingStemLeft ?? 50}%`,
+    "--opening-stem-width": `${flower.openingStemWidth ?? 66}%`,
+    "--opening-hover-tilt": `${((flower.openingHoverTilt ?? defaultHoverTilt) * hoverDirection).toFixed(3)}deg`,
+    "--opening-hover-sway": `${((flower.openingHoverSway ?? defaultHoverSway) * hoverDirection).toFixed(3)}rem`,
+    "--opening-hover-lift": `${(flower.openingHoverLift ?? defaultHoverLift).toFixed(3)}rem`,
+    "--opening-hover-duration": `${(flower.openingHoverDuration ?? defaultHoverDuration).toFixed(3)}s`,
+    "--opening-hover-delay": `${defaultHoverDelay.toFixed(3)}s`,
+    "--opening-motion-origin-x": `${flower.openingMotionOriginX ?? flower.openingStemLeft ?? 50}%`,
   } as CSSProperties;
 }
 
@@ -757,6 +1013,48 @@ function VariantShape({
           <DotRing count={6} radius={4.4} dotRadius={1.4} fill="#5aa99a" />
         </>
       );
+    case "peach-wild-aster":
+      return (
+        <>
+          <Petals count={10} rx={4.6} ry={19.5} fill={palette.petalsAlt ?? palette.petals} rotateStep={8} offsetY={-23} />
+          <Petals count={10} rx={2.4} ry={9.2} fill={palette.petals} rotateStep={26} offsetY={-15} opacity={0.82} />
+          <circle cx="50" cy="50" r="10.4" fill={warmCream} />
+          <circle cx="50" cy="50" r="5.1" fill={palette.center} opacity="0.92" />
+          <DotRing count={8} radius={6.2} dotRadius={1.1} fill={palette.detail} rotateStep={10} />
+        </>
+      );
+    case "butter-cosmos-bloom":
+      return (
+        <>
+          {Array.from({ length: 6 }, (_, index) => {
+            const angle = index * 60 + 10;
+
+            return (
+              <path
+                key={angle}
+                d="M50 57 C34 45 29 22 42 10 C57 12 66 33 50 57 Z"
+                fill={index % 2 === 0 ? palette.petals : palette.petalsAlt ?? palette.petals}
+                transform={`rotate(${angle} 50 50)`}
+              />
+            );
+          })}
+          <path d="M39 54 C41 43 58 41 62 53 C59 64 43 66 39 54 Z" fill={palette.core} />
+          <circle cx="50" cy="50" r="6.6" fill={palette.center} />
+          <circle cx="50" cy="50" r="2.4" fill={warmCream} opacity="0.9" />
+        </>
+      );
+    case "rosebud-side-sprig":
+      return (
+        <>
+          <g transform="rotate(-20 50 50)">
+            <path d="M32 55 C26 41 29 25 43 18 C57 20 64 35 58 49 C50 58 41 60 32 55 Z" fill={palette.petals} />
+            <path d="M39 53 C39 39 42 28 50 22 C56 27 58 38 54 49 C49 54 44 55 39 53 Z" fill={palette.petalsAlt ?? palette.petals} opacity="0.86" />
+            <path d="M59 50 C67 44 75 45 81 55 C75 63 67 64 59 58 Z" fill={palette.center} opacity="0.22" />
+          </g>
+          <path d="M34 56 C40 61 50 62 58 57 C52 68 40 70 34 56 Z" fill={leaf} opacity="0.44" />
+          <circle cx="50" cy="50" r="3.2" fill={palette.detail} opacity="0.42" />
+        </>
+      );
     case "yellow-wide-petal":
       return (
         <>
@@ -980,6 +1278,35 @@ export function renderStemArt(
           <Leaf d="M49 91 C28 83 18 93 16 115 C34 117 45 109 49 91 Z" fill={leafLight} stroke={leafDark} opacity={branchOpacity} />
           <Leaf d="M51 118 C70 105 82 111 84 134 C67 137 57 130 51 118 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity} />
           <path d="M50 25 C57 35 63 45 66 57" stroke={stemDark} strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.38" />
+        </svg>
+      );
+    case "peach-wild-aster":
+      return (
+        <svg viewBox="0 0 100 180" role="presentation" aria-hidden="true" className="flower-stem-svg">
+          <path d="M50 16 C48 60 51 117 50 176" stroke={stem} strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M50 72 C61 63 69 56 77 49" stroke={stemDark} strokeWidth="1.7" strokeLinecap="round" fill="none" opacity="0.76" />
+          <Leaf d="M50 92 C31 82 20 90 18 113 C35 115 46 108 50 92 Z" fill={leafLight} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M62 67 C77 58 87 64 89 81 C74 84 66 79 62 67 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M51 126 C68 114 80 120 83 142 C66 144 57 138 51 126 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity} />
+        </svg>
+      );
+    case "butter-cosmos-bloom":
+      return (
+        <svg viewBox="0 0 100 180" role="presentation" aria-hidden="true" className="flower-stem-svg">
+          <path d="M50 18 C52 65 48 121 50 176" stroke={stem} strokeWidth="4.5" strokeLinecap="round" fill="none" />
+          <Leaf d="M48 82 C28 70 16 78 14 102 C32 105 44 95 48 82 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M52 109 C73 95 85 102 87 127 C68 130 57 121 52 109 Z" fill={leafLight} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M49 136 C33 126 24 135 23 154 C37 156 46 149 49 136 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity * 0.82} />
+        </svg>
+      );
+    case "rosebud-side-sprig":
+      return (
+        <svg viewBox="0 0 100 180" role="presentation" aria-hidden="true" className="flower-stem-svg">
+          <path d="M49 24 C45 59 52 114 50 176" stroke={stem} strokeWidth="3.9" strokeLinecap="round" fill="none" />
+          <path d="M49 58 C62 47 72 40 81 34" stroke={stemDark} strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.76" />
+          <Leaf d="M63 49 C78 40 89 46 91 64 C76 68 68 62 63 49 Z" fill={leafLight} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M48 96 C30 86 19 94 17 116 C34 119 45 111 48 96 Z" fill={leaf} stroke={leafDark} opacity={branchOpacity} />
+          <Leaf d="M51 126 C68 114 79 120 82 141 C66 144 57 138 51 126 Z" fill={leafLight} stroke={leafDark} opacity={branchOpacity} />
         </svg>
       );
     case "yellow-wide-petal":
