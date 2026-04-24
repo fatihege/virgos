@@ -135,11 +135,22 @@ const debugPrefix = "[bouquet-debug]";
 
 function debugLog(message: string, details?: Record<string, unknown>) {
   if (details) {
-    console.log(debugPrefix, message, details);
+    let serializedDetails = "";
+
+    try {
+      serializedDetails = JSON.stringify(details);
+    } catch (error) {
+      serializedDetails = JSON.stringify({
+        serializationError:
+          error instanceof Error ? error.message : "unknown serialization error",
+      });
+    }
+
+    console.log(`${debugPrefix} ${message} ${serializedDetails}`);
     return;
   }
 
-  console.log(debugPrefix, message);
+  console.log(`${debugPrefix} ${message}`);
 }
 
 function computePerformanceProfile(
