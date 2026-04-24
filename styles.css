@@ -144,10 +144,13 @@ select {
   animation: drift linear infinite;
 }
 
-.opening-scene,
-.bouquet-scene,
 .fx-layer {
   pointer-events: none;
+}
+
+.opening-scene,
+.bouquet-scene {
+  pointer-events: auto;
 }
 
 .opening-scene {
