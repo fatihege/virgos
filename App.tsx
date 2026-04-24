@@ -56,6 +56,42 @@ type BouquetHeart = {
   color: string;
 };
 
+type Butterfly = {
+  id: string;
+  left: number;
+  top: number;
+  size: number;
+  rotate: number;
+  variant: ButterflyVariant;
+  flightX: number;
+  flightY: number;
+  flightDuration: number;
+  driftDuration: number;
+  flapDuration: number;
+  delay: number;
+  scale: number;
+};
+
+type ButterflyVariant =
+  | "sky-swallowtail"
+  | "coral-glow"
+  | "pink-ribbon"
+  | "orchid-garden"
+  | "ruby-drift"
+  | "lilac-mist"
+  | "violet-velvet"
+  | "peach-soft"
+  | "teal-bloom";
+
+type ButterflyVisualStyle = {
+  wingFill: string;
+  wingAccent: string;
+  detailStroke: string;
+  bodyColor: string;
+  antennaColor: string;
+  shadowColor: string;
+};
+
 type NoteCopy = {
   closedLabel: string;
   eyebrow: string;
@@ -182,6 +218,10 @@ function getPollenCount(profile: PerformanceProfile) {
 
 function getHeartTargetCount(profile: PerformanceProfile) {
   return profile === "light" ? 25 : profile === "balanced" ? 45 : 75;
+}
+
+function getButterflyTargetCount(profile: PerformanceProfile) {
+  return profile === "light" ? 8 : profile === "balanced" ? 12 : 16;
 }
 
 function pickDistributedItems<T>(items: T[], targetCount: number) {
@@ -710,6 +750,526 @@ function buildBouquetHearts(profile: PerformanceProfile): BouquetHeart[] {
   );
 
   return pickDistributedItems(allHearts, getHeartTargetCount(profile));
+}
+
+function buildButterflies(profile: PerformanceProfile): Butterfly[] {
+  const butterflies: Butterfly[] = [
+    {
+      id: "butterfly-1",
+      left: 8,
+      top: 11,
+      size: 34,
+      rotate: -8,
+      variant: "sky-swallowtail",
+      flightX: 16,
+      flightY: -4,
+      flightDuration: 14.8,
+      driftDuration: 4.8,
+      flapDuration: 0.96,
+      delay: -1.6,
+      scale: 0.92,
+    },
+    {
+      id: "butterfly-2",
+      left: 21,
+      top: 20,
+      size: 28,
+      rotate: 9,
+      variant: "coral-glow",
+      flightX: -12,
+      flightY: -6,
+      flightDuration: 12.6,
+      driftDuration: 4.2,
+      flapDuration: 0.88,
+      delay: -3.1,
+      scale: 0.82,
+    },
+    {
+      id: "butterfly-3",
+      left: 36,
+      top: 10,
+      size: 30,
+      rotate: -6,
+      variant: "pink-ribbon",
+      flightX: 13,
+      flightY: -5,
+      flightDuration: 13.5,
+      driftDuration: 4.9,
+      flapDuration: 0.9,
+      delay: -4.3,
+      scale: 0.86,
+    },
+    {
+      id: "butterfly-4",
+      left: 51,
+      top: 15,
+      size: 26,
+      rotate: 8,
+      variant: "orchid-garden",
+      flightX: -14,
+      flightY: -4,
+      flightDuration: 11.9,
+      driftDuration: 3.8,
+      flapDuration: 0.8,
+      delay: -0.8,
+      scale: 0.8,
+    },
+    {
+      id: "butterfly-5",
+      left: 72,
+      top: 12,
+      size: 32,
+      rotate: -10,
+      variant: "ruby-drift",
+      flightX: 12,
+      flightY: -7,
+      flightDuration: 15.4,
+      driftDuration: 4.5,
+      flapDuration: 0.94,
+      delay: -5.5,
+      scale: 0.9,
+    },
+    {
+      id: "butterfly-6",
+      left: 89,
+      top: 21,
+      size: 24,
+      rotate: 11,
+      variant: "lilac-mist",
+      flightX: -11,
+      flightY: -5,
+      flightDuration: 12.8,
+      driftDuration: 4.1,
+      flapDuration: 0.84,
+      delay: -2.4,
+      scale: 0.78,
+    },
+    {
+      id: "butterfly-7",
+      left: 9,
+      top: 37,
+      size: 29,
+      rotate: -7,
+      variant: "violet-velvet",
+      flightX: 18,
+      flightY: -8,
+      flightDuration: 15.8,
+      driftDuration: 5,
+      flapDuration: 0.98,
+      delay: -4.8,
+      scale: 0.84,
+    },
+    {
+      id: "butterfly-8",
+      left: 18,
+      top: 55,
+      size: 23,
+      rotate: 10,
+      variant: "peach-soft",
+      flightX: -10,
+      flightY: -7,
+      flightDuration: 12.4,
+      driftDuration: 3.7,
+      flapDuration: 0.82,
+      delay: -1.1,
+      scale: 0.76,
+    },
+    {
+      id: "butterfly-9",
+      left: 31,
+      top: 66,
+      size: 27,
+      rotate: -5,
+      variant: "teal-bloom",
+      flightX: 11,
+      flightY: -6,
+      flightDuration: 13.7,
+      driftDuration: 4.6,
+      flapDuration: 0.9,
+      delay: -6.2,
+      scale: 0.81,
+    },
+    {
+      id: "butterfly-10",
+      left: 44,
+      top: 8,
+      size: 21,
+      rotate: 7,
+      variant: "pink-ribbon",
+      flightX: -9,
+      flightY: -4,
+      flightDuration: 10.9,
+      driftDuration: 3.9,
+      flapDuration: 0.78,
+      delay: -3.6,
+      scale: 0.74,
+    },
+    {
+      id: "butterfly-11",
+      left: 62,
+      top: 30,
+      size: 25,
+      rotate: -9,
+      variant: "coral-glow",
+      flightX: 10,
+      flightY: -5,
+      flightDuration: 13.1,
+      driftDuration: 4.4,
+      flapDuration: 0.86,
+      delay: -0.4,
+      scale: 0.79,
+    },
+    {
+      id: "butterfly-12",
+      left: 78,
+      top: 46,
+      size: 31,
+      rotate: 8,
+      variant: "lilac-mist",
+      flightX: -13,
+      flightY: -6,
+      flightDuration: 14.9,
+      driftDuration: 4.7,
+      flapDuration: 0.95,
+      delay: -2.9,
+      scale: 0.88,
+    },
+    {
+      id: "butterfly-13",
+      left: 91,
+      top: 63,
+      size: 22,
+      rotate: -11,
+      variant: "ruby-drift",
+      flightX: -12,
+      flightY: -8,
+      flightDuration: 11.8,
+      driftDuration: 3.8,
+      flapDuration: 0.8,
+      delay: -5.1,
+      scale: 0.75,
+    },
+    {
+      id: "butterfly-14",
+      left: 73,
+      top: 78,
+      size: 26,
+      rotate: 9,
+      variant: "sky-swallowtail",
+      flightX: 14,
+      flightY: -7,
+      flightDuration: 13.9,
+      driftDuration: 4.3,
+      flapDuration: 0.9,
+      delay: -1.9,
+      scale: 0.8,
+    },
+    {
+      id: "butterfly-15",
+      left: 53,
+      top: 74,
+      size: 20,
+      rotate: -6,
+      variant: "peach-soft",
+      flightX: -8,
+      flightY: -4,
+      flightDuration: 10.7,
+      driftDuration: 3.6,
+      flapDuration: 0.76,
+      delay: -4.5,
+      scale: 0.72,
+    },
+    {
+      id: "butterfly-16",
+      left: 26,
+      top: 84,
+      size: 24,
+      rotate: 8,
+      variant: "violet-velvet",
+      flightX: 12,
+      flightY: -6,
+      flightDuration: 12.9,
+      driftDuration: 4.1,
+      flapDuration: 0.84,
+      delay: -2.2,
+      scale: 0.78,
+    },
+  ];
+
+  return pickDistributedItems(butterflies, getButterflyTargetCount(profile));
+}
+
+function getButterflyVariantStyle(variant: ButterflyVariant): ButterflyVisualStyle {
+  switch (variant) {
+    case "sky-swallowtail":
+      return {
+        wingFill: "#72c7ef",
+        wingAccent: "#9de0f7",
+        detailStroke: "#4fa7d3",
+        bodyColor: "#5c3f67",
+        antennaColor: "#b7c4d9",
+        shadowColor: "rgba(101, 180, 218, 0.26)",
+      };
+    case "coral-glow":
+      return {
+        wingFill: "#ff6f61",
+        wingAccent: "#ff8f84",
+        detailStroke: "#e9655f",
+        bodyColor: "#583f49",
+        antennaColor: "#c8b9c7",
+        shadowColor: "rgba(255, 123, 103, 0.24)",
+      };
+    case "pink-ribbon":
+      return {
+        wingFill: "#e88fc6",
+        wingAccent: "#f2abd5",
+        detailStroke: "#d774b2",
+        bodyColor: "#5a4260",
+        antennaColor: "#d8bfd2",
+        shadowColor: "rgba(228, 136, 191, 0.24)",
+      };
+    case "orchid-garden":
+      return {
+        wingFill: "#ab5bb8",
+        wingAccent: "#bf74ca",
+        detailStroke: "#8a449a",
+        bodyColor: "#57405c",
+        antennaColor: "#cab8d3",
+        shadowColor: "rgba(159, 82, 175, 0.24)",
+      };
+    case "ruby-drift":
+      return {
+        wingFill: "#c64747",
+        wingAccent: "#d75d5b",
+        detailStroke: "#a93d3e",
+        bodyColor: "#57424d",
+        antennaColor: "#ccb9c2",
+        shadowColor: "rgba(188, 69, 69, 0.24)",
+      };
+    case "lilac-mist":
+      return {
+        wingFill: "#d8c3f2",
+        wingAccent: "#eadcf9",
+        detailStroke: "#baa2df",
+        bodyColor: "#53617f",
+        antennaColor: "#d7d2e4",
+        shadowColor: "rgba(199, 178, 230, 0.24)",
+      };
+    case "violet-velvet":
+      return {
+        wingFill: "#8b80ad",
+        wingAccent: "#a39ac4",
+        detailStroke: "#6f6593",
+        bodyColor: "#6d5a49",
+        antennaColor: "#c9c3d5",
+        shadowColor: "rgba(132, 122, 170, 0.22)",
+      };
+    case "peach-soft":
+      return {
+        wingFill: "#ffd1ab",
+        wingAccent: "#ffe4c7",
+        detailStroke: "#f0b37f",
+        bodyColor: "#66506b",
+        antennaColor: "#d8c7ce",
+        shadowColor: "rgba(255, 198, 146, 0.22)",
+      };
+    case "teal-bloom":
+      return {
+        wingFill: "#099d95",
+        wingAccent: "#1fb1a8",
+        detailStroke: "#0f837c",
+        bodyColor: "#4d4b64",
+        antennaColor: "#c2d2d2",
+        shadowColor: "rgba(18, 147, 140, 0.24)",
+      };
+  }
+}
+
+function renderButterflyVariant(variant: ButterflyVariant, style: ButterflyVisualStyle) {
+  const commonWingStrokeProps = {
+    fill: "none",
+    stroke: style.detailStroke,
+    strokeWidth: 1.75,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    opacity: 0.42,
+  };
+
+  switch (variant) {
+    case "sky-swallowtail":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C34 10 17 8 7 18 C7 34 17 42 28 42 C20 52 20 60 26 65 C34 60 39 52 43 44 C45 50 44 57 39 66" fill={style.wingFill} />
+            <path d="M45 29 C35 17 22 15 14 22 C15 32 22 37 30 37 C26 43 26 48 29 52 C34 48 39 42 43 36" fill={style.wingAccent} opacity="0.82" />
+            <path d="M46 32 C36 23 29 19 20 18" {...commonWingStrokeProps} />
+            <path d="M42 37 C34 33 28 33 21 35" {...commonWingStrokeProps} />
+            <path d="M42 43 C35 48 32 54 31 61" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C66 10 83 8 93 18 C93 34 83 42 72 42 C80 52 80 60 74 65 C66 60 61 52 57 44 C55 50 56 57 61 66" fill={style.wingFill} />
+            <path d="M55 29 C65 17 78 15 86 22 C85 32 78 37 70 37 C74 43 74 48 71 52 C66 48 61 42 57 36" fill={style.wingAccent} opacity="0.82" />
+            <path d="M54 32 C64 23 71 19 80 18" {...commonWingStrokeProps} />
+            <path d="M58 37 C66 33 72 33 79 35" {...commonWingStrokeProps} />
+            <path d="M58 43 C65 48 68 54 69 61" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "coral-glow":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C36 13 20 10 10 18 C11 33 21 41 33 41 C27 48 27 57 34 61 C41 55 44 48 46 40" fill={style.wingFill} />
+            <path d="M46 28 C37 18 27 16 19 22 C20 30 27 35 34 35 C31 40 31 45 35 48 C40 44 43 39 45 34" fill={style.wingAccent} opacity="0.84" />
+            <path d="M45 31 C38 26 31 22 22 20" {...commonWingStrokeProps} />
+            <path d="M43 35 C36 34 29 35 23 39" {...commonWingStrokeProps} />
+            <path d="M43 40 C38 45 36 50 36 57" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C64 13 80 10 90 18 C89 33 79 41 67 41 C73 48 73 57 66 61 C59 55 56 48 54 40" fill={style.wingFill} />
+            <path d="M54 28 C63 18 73 16 81 22 C80 30 73 35 66 35 C69 40 69 45 65 48 C60 44 57 39 55 34" fill={style.wingAccent} opacity="0.84" />
+            <path d="M55 31 C62 26 69 22 78 20" {...commonWingStrokeProps} />
+            <path d="M57 35 C64 34 71 35 77 39" {...commonWingStrokeProps} />
+            <path d="M57 40 C62 45 64 50 64 57" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "pink-ribbon":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 30 C35 12 18 11 10 21 C11 34 20 41 31 40 C25 48 25 57 31 63 C39 58 43 50 46 41 C45 47 43 55 39 61" fill={style.wingFill} />
+            <path d="M45 28 C36 19 25 18 19 24 C20 31 26 35 33 35 C29 40 29 46 33 50 C38 46 41 40 44 34" fill={style.wingAccent} opacity="0.84" />
+            <path d="M45 30 C37 24 31 20 22 20" {...commonWingStrokeProps} />
+            <path d="M43 35 C35 34 29 36 24 40" {...commonWingStrokeProps} />
+            <path d="M43 41 C38 47 36 54 36 60" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 30 C65 12 82 11 90 21 C89 34 80 41 69 40 C75 48 75 57 69 63 C61 58 57 50 54 41 C55 47 57 55 61 61" fill={style.wingFill} />
+            <path d="M55 28 C64 19 75 18 81 24 C80 31 74 35 67 35 C71 40 71 46 67 50 C62 46 59 40 56 34" fill={style.wingAccent} opacity="0.84" />
+            <path d="M55 30 C63 24 69 20 78 20" {...commonWingStrokeProps} />
+            <path d="M57 35 C65 34 71 36 76 40" {...commonWingStrokeProps} />
+            <path d="M57 41 C62 47 64 54 64 60" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "orchid-garden":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 13 19 10 10 18 C10 32 18 40 29 41 C23 47 23 57 30 62 C38 57 42 49 46 41" fill={style.wingFill} />
+            <path d="M46 30 C38 20 28 17 20 22 C21 30 27 35 34 35 C31 40 31 46 35 49 C40 45 43 40 45 35" fill={style.wingAccent} opacity="0.82" />
+            <path d="M45 31 C39 25 32 21 23 20" {...commonWingStrokeProps} />
+            <path d="M43 36 C36 35 30 36 24 39" {...commonWingStrokeProps} />
+            <path d="M43 41 C38 46 36 52 35 58" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 13 81 10 90 18 C90 32 82 40 71 41 C77 47 77 57 70 62 C62 57 58 49 54 41" fill={style.wingFill} />
+            <path d="M54 30 C62 20 72 17 80 22 C79 30 73 35 66 35 C69 40 69 46 65 49 C60 45 57 40 55 35" fill={style.wingAccent} opacity="0.82" />
+            <path d="M55 31 C61 25 68 21 77 20" {...commonWingStrokeProps} />
+            <path d="M57 36 C64 35 70 36 76 39" {...commonWingStrokeProps} />
+            <path d="M57 41 C62 46 64 52 65 58" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "ruby-drift":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 12 18 9 9 19 C10 34 20 41 32 41 C26 47 24 56 31 62 C39 56 43 49 46 41" fill={style.wingFill} />
+            <path d="M45 29 C36 18 25 16 18 22 C19 30 26 35 33 35 C29 40 29 46 33 49 C38 45 42 39 44 34" fill={style.wingAccent} opacity="0.68" />
+            <path d="M45 31 C37 24 30 20 21 19" {...commonWingStrokeProps} />
+            <path d="M43 36 C35 35 29 36 23 40" {...commonWingStrokeProps} />
+            <path d="M43 41 C38 46 36 51 35 58" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 12 82 9 91 19 C90 34 80 41 68 41 C74 47 76 56 69 62 C61 56 57 49 54 41" fill={style.wingFill} />
+            <path d="M55 29 C64 18 75 16 82 22 C81 30 74 35 67 35 C71 40 71 46 67 49 C62 45 58 39 56 34" fill={style.wingAccent} opacity="0.68" />
+            <path d="M55 31 C63 24 70 20 79 19" {...commonWingStrokeProps} />
+            <path d="M57 36 C65 35 71 36 77 40" {...commonWingStrokeProps} />
+            <path d="M57 41 C62 46 64 51 65 58" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "lilac-mist":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 13 19 11 11 19 C11 33 19 40 30 41 C24 47 24 56 31 61 C39 56 43 49 46 41" fill={style.wingFill} />
+            <path d="M45 29 C37 20 27 18 21 23 C21 30 27 34 33 34 C30 39 30 44 34 47 C39 44 42 39 44 34" fill={style.wingAccent} opacity="0.88" />
+            <path d="M45 31 C37 24 30 20 22 20" {...commonWingStrokeProps} />
+            <path d="M43 35 C36 34 30 35 24 39" {...commonWingStrokeProps} />
+            <path d="M43 40 C38 45 35 50 35 56" {...commonWingStrokeProps} />
+            <path d="M31 24 C29 29 29 34 31 39" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 13 81 11 89 19 C89 33 81 40 70 41 C76 47 76 56 69 61 C61 56 57 49 54 41" fill={style.wingFill} />
+            <path d="M55 29 C63 20 73 18 79 23 C79 30 73 34 67 34 C70 39 70 44 66 47 C61 44 58 39 56 34" fill={style.wingAccent} opacity="0.88" />
+            <path d="M55 31 C63 24 70 20 78 20" {...commonWingStrokeProps} />
+            <path d="M57 35 C64 34 70 35 76 39" {...commonWingStrokeProps} />
+            <path d="M57 40 C62 45 65 50 65 56" {...commonWingStrokeProps} />
+            <path d="M69 24 C71 29 71 34 69 39" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "violet-velvet":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 12 18 10 9 19 C9 34 19 42 31 41 C25 47 25 56 31 61 C38 57 42 50 46 42" fill={style.wingFill} />
+            <path d="M46 30 C38 21 28 18 20 23 C21 30 27 35 34 35 C31 40 31 46 35 49 C40 45 43 40 45 35" fill={style.wingAccent} opacity="0.75" />
+            <path d="M45 31 C37 24 30 21 22 20" {...commonWingStrokeProps} />
+            <path d="M43 36 C36 35 30 36 24 40" {...commonWingStrokeProps} />
+            <path d="M43 42 C38 47 36 52 35 59" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 12 82 10 91 19 C91 34 81 42 69 41 C75 47 75 56 69 61 C62 57 58 50 54 42" fill={style.wingFill} />
+            <path d="M54 30 C62 21 72 18 80 23 C79 30 73 35 66 35 C69 40 69 46 65 49 C60 45 57 40 55 35" fill={style.wingAccent} opacity="0.75" />
+            <path d="M55 31 C63 24 70 21 78 20" {...commonWingStrokeProps} />
+            <path d="M57 36 C64 35 70 36 76 40" {...commonWingStrokeProps} />
+            <path d="M57 42 C62 47 64 52 65 59" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "peach-soft":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 13 20 11 11 20 C12 33 20 40 31 40 C25 47 25 56 31 61 C38 57 42 49 46 41" fill={style.wingFill} />
+            <path d="M45 29 C37 20 27 18 20 24 C21 30 27 34 33 34 C30 39 30 45 34 48 C39 44 42 39 44 34" fill={style.wingAccent} opacity="0.94" />
+            <path d="M45 31 C37 24 30 20 22 20" {...commonWingStrokeProps} />
+            <path d="M43 35 C36 34 30 35 24 39" {...commonWingStrokeProps} />
+            <path d="M43 40 C38 45 35 50 35 56" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 13 80 11 89 20 C88 33 80 40 69 40 C75 47 75 56 69 61 C62 57 58 49 54 41" fill={style.wingFill} />
+            <path d="M55 29 C63 20 73 18 80 24 C79 30 73 34 67 34 C70 39 70 45 66 48 C61 44 58 39 56 34" fill={style.wingAccent} opacity="0.94" />
+            <path d="M55 31 C63 24 70 20 78 20" {...commonWingStrokeProps} />
+            <path d="M57 35 C64 34 70 35 76 39" {...commonWingStrokeProps} />
+            <path d="M57 40 C62 45 65 50 65 56" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+    case "teal-bloom":
+      return (
+        <>
+          <g className="butterfly__wing butterfly__wing--left">
+            <path d="M47 31 C35 12 18 10 9 19 C10 34 20 42 32 42 C26 48 25 58 31 63 C39 57 43 50 46 42" fill={style.wingFill} />
+            <path d="M45 29 C36 19 26 17 19 23 C20 31 26 35 33 35 C30 40 30 46 34 50 C39 46 42 40 44 34" fill={style.wingAccent} opacity="0.78" />
+            <path d="M45 31 C37 24 30 20 21 19" {...commonWingStrokeProps} />
+            <path d="M43 36 C35 35 29 36 23 40" {...commonWingStrokeProps} />
+            <path d="M43 42 C38 47 36 53 35 60" {...commonWingStrokeProps} />
+          </g>
+          <g className="butterfly__wing butterfly__wing--right">
+            <path d="M53 31 C65 12 82 10 91 19 C90 34 80 42 68 42 C74 48 75 58 69 63 C61 57 57 50 54 42" fill={style.wingFill} />
+            <path d="M55 29 C64 19 74 17 81 23 C80 31 74 35 67 35 C70 40 70 46 66 50 C61 46 58 40 56 34" fill={style.wingAccent} opacity="0.78" />
+            <path d="M55 31 C63 24 70 20 79 19" {...commonWingStrokeProps} />
+            <path d="M57 36 C65 35 71 36 77 40" {...commonWingStrokeProps} />
+            <path d="M57 42 C62 47 64 53 65 60" {...commonWingStrokeProps} />
+          </g>
+        </>
+      );
+  }
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -1613,6 +2173,7 @@ export default function App() {
   const previousOpeningStageSizeRef = useRef(openingStageSize);
 
   const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
+  const butterflies = useMemo(() => buildButterflies(performanceProfile), [performanceProfile]);
   const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
   const bouquetGlints = useMemo(() => buildBouquetGlints(), []);
   const openingFlowerConfigs = useMemo(
@@ -1645,6 +2206,8 @@ export default function App() {
         : phase === "finishing"
           ? "wrapping..."
           : "tap to arrange";
+  const showButterflies =
+    phase === "arranging" || phase === "clustered" || phase === "bouquet";
   const openingStageStyle =
     openingStageSize.width > 0 && openingStageSize.height > 0
       ? ({
@@ -1662,6 +2225,7 @@ export default function App() {
       bouquetFlowers: bouquetFlowerConfigs.length,
       pollenCount: pollen.length,
       heartCount: bouquetHearts.length,
+      butterflyCount: butterflies.length,
       strictMode: true,
     });
   }, []);
@@ -3001,6 +3565,74 @@ export default function App() {
           />
         ))}
       </div>
+
+      {showButterflies ? (
+        <div className="butterfly-layer" aria-hidden="true">
+          {butterflies.map((butterfly) => (
+            (() => {
+              const butterflyStyle = getButterflyVariantStyle(butterfly.variant);
+
+              return (
+                <span
+                  key={butterfly.id}
+                  className="butterfly"
+                  style={
+                    {
+                      left: `${butterfly.left}%`,
+                      top: `${butterfly.top}%`,
+                      width: `${Math.round(butterfly.size * 1.5)}px`,
+                      height: `${Math.round(butterfly.size * 1.2)}px`,
+                      "--butterfly-rotate": `${butterfly.rotate}deg`,
+                      "--butterfly-scale": butterfly.scale,
+                      "--butterfly-flight-x": `${butterfly.flightX}vw`,
+                      "--butterfly-flight-y": `${butterfly.flightY}vh`,
+                      "--butterfly-flight-duration": `${butterfly.flightDuration}s`,
+                      "--butterfly-drift-duration": `${butterfly.driftDuration}s`,
+                      "--butterfly-flap-duration": `${butterfly.flapDuration}s`,
+                      "--butterfly-delay": `${butterfly.delay}s`,
+                      "--butterfly-shadow-color": butterflyStyle.shadowColor,
+                    } as CSSProperties
+                  }
+                >
+                  <span className="butterfly__float">
+                    <svg
+                      className="butterfly__svg"
+                      viewBox="0 0 100 72"
+                      role="presentation"
+                      aria-hidden="true"
+                    >
+                      {renderButterflyVariant(butterfly.variant, butterflyStyle)}
+                      <path
+                        className="butterfly__body"
+                        d="M49.2 18 C47.2 25 46.8 36 47.7 48 C48.2 56 49 61 50 64 C51 61 51.8 56 52.3 48 C53.2 36 52.8 25 50.8 18 Z"
+                        fill={butterflyStyle.bodyColor}
+                      />
+                      <ellipse
+                        className="butterfly__thorax"
+                        cx="50"
+                        cy="27"
+                        rx="4.2"
+                        ry="8.6"
+                        fill={butterflyStyle.bodyColor}
+                      />
+                      <path
+                        className="butterfly__antenna"
+                        d="M49 22 C44.5 14 39.5 11.5 35.5 10.5"
+                        stroke={butterflyStyle.antennaColor}
+                      />
+                      <path
+                        className="butterfly__antenna"
+                        d="M51 22 C55.5 14 60.5 11.5 64.5 10.5"
+                        stroke={butterflyStyle.antennaColor}
+                      />
+                    </svg>
+                  </span>
+                </span>
+              );
+            })()
+          ))}
+        </div>
+      ) : null}
 
       <div className="bouquet-hearts bouquet-hearts--sitewide" aria-hidden="true">
         {bouquetHearts.map((heart) => (
