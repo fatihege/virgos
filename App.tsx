@@ -315,6 +315,14 @@ const romanticNote: NoteCopy = {
 };
 
 const secretFlowerId = "f-2";
+const secretFlowerNotes: Record<string, SecretNoteCopy> = {
+  [secretFlowerId]: {
+    body: "You are the most beautiful flower in the world. I know this very wellğŸ’œ .",
+  },
+  "f-11": {
+    body: "Some flowers bloom only for one person.",
+  },
+};
 
 const secretNote: SecretNoteCopy = {
   body: "You are the most beautiful flower in the world. I know this very well💜 .",
@@ -1618,6 +1626,7 @@ function Flower({
   mode,
   isSecretFlower = false,
   secretOpen = false,
+  secretNoteId,
   onClick,
   onKeyDown,
 }: {
@@ -1625,6 +1634,7 @@ function Flower({
   mode: "opening" | "bouquet";
   isSecretFlower?: boolean;
   secretOpen?: boolean;
+  secretNoteId?: string;
   onClick?: (event: ReactMouseEvent<HTMLDivElement>) => void;
   onKeyDown?: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
 }) {
@@ -1672,7 +1682,7 @@ function Flower({
       data-secret-open={secretOpen ? "true" : "false"}
       role={isInteractiveSecret ? "button" : undefined}
       aria-label={isInteractiveSecret ? "Open the secret flower note" : undefined}
-      aria-controls={isInteractiveSecret ? "secret-flower-note" : undefined}
+      aria-controls={isInteractiveSecret ? secretNoteId : undefined}
       aria-expanded={isInteractiveSecret ? secretOpen : undefined}
       tabIndex={isInteractiveSecret ? 0 : undefined}
       onClick={onClick}
@@ -1750,10 +1760,12 @@ function MiniSparkleIcon({ className }: { className?: string }) {
 }
 
 function SecretFlowerNote({
+  noteId,
   flower,
   open,
   note,
 }: {
+  noteId: string;
   flower: FlowerConfig;
   open: boolean;
   note: SecretNoteCopy;
@@ -1763,7 +1775,7 @@ function SecretFlowerNote({
 
   return (
     <div
-      id="secret-flower-note"
+      id={noteId}
       className="secret-flower-note"
       data-open={open}
       aria-hidden={!open}
@@ -1879,6 +1891,12 @@ function BouquetWrap() {
   return (
     <div className="bouquet-wrap" aria-hidden="true">
       <div className="bouquet-wrap__glow" data-wrap-piece />
+      <div className="bouquet-wrap__dedication" data-wrap-piece>
+        <span className="bouquet-wrap__dedication-text">
+          <span className="bouquet-wrap__dedication-line">Happy Birthday</span>
+          <span className="bouquet-wrap__dedication-line">Ceren</span>
+        </span>
+      </div>
       <svg
         className="bouquet-wrap-svg"
         viewBox="0 0 260 330"
@@ -2160,14 +2178,14 @@ export default function App() {
   const [phase, setPhase] = useState<Phase>("intro");
   const [isInteractive, setIsInteractive] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
-  const [secretNoteOpen, setSecretNoteOpen] = useState(false);
+  const [activeSecretFlowerId, setActiveSecretFlowerId] = useState<string | null>(null);
   const [openingStageSize, setOpeningStageSize] = useState({ width: 0, height: 0 });
   const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
   const [performanceProfile, setPerformanceProfile] = useState<PerformanceProfile>(getInitialProfile);
   const previousPhaseRef = useRef(phase);
   const previousInteractiveRef = useRef(isInteractive);
   const previousNoteOpenRef = useRef(noteOpen);
-  const previousSecretNoteOpenRef = useRef(secretNoteOpen);
+  const previousActiveSecretFlowerIdRef = useRef<string | null>(activeSecretFlowerId);
   const previousReducedMotionRef = useRef(reducedMotion);
   const previousPerformanceProfileRef = useRef(performanceProfile);
   const previousOpeningStageSizeRef = useRef(openingStageSize);
@@ -2184,8 +2202,8 @@ export default function App() {
     () => flowerConfigs.filter((flower) => flower.showInBouquet !== false),
     [],
   );
-  const secretFlowerConfig = useMemo(
-    () => bouquetFlowerConfigs.find((flower) => flower.id === secretFlowerId) ?? null,
+  const secretFlowerConfigs = useMemo(
+    () => bouquetFlowerConfigs.filter((flower) => flower.id in secretFlowerNotes),
     [bouquetFlowerConfigs],
   );
   const flowerConfigById = useMemo(
@@ -2259,13 +2277,13 @@ export default function App() {
   }, [noteOpen, phase]);
 
   useEffect(() => {
-    debugLog("secretNoteOpen changed", {
-      from: previousSecretNoteOpenRef.current,
-      to: secretNoteOpen,
+    debugLog("activeSecretFlowerId changed", {
+      from: previousActiveSecretFlowerIdRef.current,
+      to: activeSecretFlowerId,
       phase,
     });
-    previousSecretNoteOpenRef.current = secretNoteOpen;
-  }, [secretNoteOpen, phase]);
+    previousActiveSecretFlowerIdRef.current = activeSecretFlowerId;
+  }, [activeSecretFlowerId, phase]);
 
   useEffect(() => {
     debugLog("reducedMotion changed", {
@@ -2534,7 +2552,7 @@ export default function App() {
   useEffect(() => {
     if (phase !== "bouquet") {
       debugLog("closing secret note because phase is not bouquet", { phase });
-      setSecretNoteOpen(false);
+      setActiveSecretFlowerId(null);
     }
   }, [phase]);
 
@@ -2826,7 +2844,7 @@ export default function App() {
       nextOpen,
     });
     if (nextOpen) {
-      setSecretNoteOpen(false);
+      setActiveSecretFlowerId(null);
     }
     setNoteOpen(nextOpen);
   };
@@ -2844,7 +2862,11 @@ export default function App() {
       return;
     }
 
-    setSecretNoteOpen((current) => !current);
+    const targetFlowerId = event.currentTarget.dataset.flowerId ?? null;
+
+    setActiveSecretFlowerId((current) =>
+      current === targetFlowerId ? null : targetFlowerId,
+    );
   };
 
   const handleSecretFlowerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -2866,7 +2888,11 @@ export default function App() {
       return;
     }
 
-    setSecretNoteOpen((current) => !current);
+    const targetFlowerId = event.currentTarget.dataset.flowerId ?? null;
+
+    setActiveSecretFlowerId((current) =>
+      current === targetFlowerId ? null : targetFlowerId,
+    );
   };
 
   const runArrangeSequence = () => {
@@ -3708,7 +3734,7 @@ export default function App() {
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="cluster" />
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="bouquet" />
           {bouquetFlowerConfigs.map((flower) => {
-            const isSecretTarget = phase === "bouquet" && flower.id === secretFlowerId;
+            const isSecretTarget = phase === "bouquet" && flower.id in secretFlowerNotes;
 
             return (
               <Flower
@@ -3716,20 +3742,23 @@ export default function App() {
                 flower={flower}
                 mode="bouquet"
                 isSecretFlower={isSecretTarget}
-                secretOpen={isSecretTarget && secretNoteOpen}
+                secretOpen={isSecretTarget && activeSecretFlowerId === flower.id}
+                secretNoteId={isSecretTarget ? `secret-flower-note-${flower.id}` : undefined}
                 onClick={isSecretTarget ? toggleSecretFlowerNote : undefined}
                 onKeyDown={isSecretTarget ? handleSecretFlowerKeyDown : undefined}
               />
             );
           })}
         </div>
-        {secretFlowerConfig ? (
+        {secretFlowerConfigs.map((flower) => (
           <SecretFlowerNote
-            flower={secretFlowerConfig}
-            open={phase === "bouquet" && secretNoteOpen}
-            note={secretNote}
+            key={`secret-note-${flower.id}`}
+            noteId={`secret-flower-note-${flower.id}`}
+            flower={flower}
+            open={phase === "bouquet" && activeSecretFlowerId === flower.id}
+            note={secretFlowerNotes[flower.id]}
           />
-        ) : null}
+        ))}
         <NoteCard
           noteRef={noteCardRef}
           glowRef={noteGlowRef}

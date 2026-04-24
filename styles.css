@@ -1662,6 +1662,7 @@ select {
 }
 
 .bouquet-wrap__glow,
+.bouquet-wrap__dedication,
 .bouquet-wrap-svg,
 .bouquet-wrap__shadow {
   position: absolute;
@@ -1673,6 +1674,47 @@ select {
   height: 44%;
   background: radial-gradient(ellipse, rgba(255, 255, 255, 0.52), transparent 72%);
   filter: blur(18px);
+}
+
+.bouquet-wrap__dedication {
+  inset: 44.6% 23.2% auto 23.2%;
+  height: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.bouquet-wrap__dedication-text {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0.1rem;
+  color: rgba(124, 88, 96, 0.88);
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.bouquet-wrap__dedication-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.bouquet-wrap__dedication-line:first-child {
+  font-size: clamp(0.72rem, 1.08vw, 0.94rem);
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.bouquet-wrap__dedication-line:last-child {
+  font-size: clamp(0.98rem, 1.5vw, 1.28rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .bouquet-wrap-svg {
@@ -2144,6 +2186,25 @@ select {
     width: 61vw;
     height: 84vw;
     bottom: 4%;
+  }
+
+  .bouquet-wrap__dedication {
+    inset: 45.2% 23.8% auto 23.8%;
+    height: 17%;
+  }
+
+  .bouquet-wrap__dedication-text {
+    gap: 0.06rem;
+  }
+
+  .bouquet-wrap__dedication-line:first-child {
+    font-size: clamp(0.54rem, 1.9vw, 0.7rem);
+    letter-spacing: 0.08em;
+  }
+
+  .bouquet-wrap__dedication-line:last-child {
+    font-size: clamp(0.8rem, 2.8vw, 1rem);
+    letter-spacing: 0.04em;
   }
 }
 
