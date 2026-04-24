@@ -321,9 +321,9 @@ const romanticNote: NoteCopy = {
 };
 
 const backgroundTrack: MusicTrack = {
-  title: "Blank Space",
-  artist: "Taylor Swift",
-  src: new URL("./Taylor Swift – Blank Space (Lyrics) - Latin City.mp3", import.meta.url).href,
+  title: "J'y suis jamais alle",
+  artist: "Mercuzio Pianist",
+  src: new URL("./J'y suis jamais allé (Theme from Amelie) - Mercuzio Pianist.mp3", import.meta.url).href,
 };
 
 const secretFlowerId = "f-2";
