@@ -104,6 +104,12 @@ type SecretNoteCopy = {
   body: string;
 };
 
+type MusicTrack = {
+  title: string;
+  artist: string;
+  src: string;
+};
+
 type BouquetStage = "cluster" | "bouquet";
 
 type Point = {
@@ -312,6 +318,12 @@ const romanticNote: NoteCopy = {
     "And I hope this little surprise was worth the excitement. \u{1F49C}",
   ].join("\n"),
   signature: "",
+};
+
+const backgroundTrack: MusicTrack = {
+  title: "Blank Space",
+  artist: "Taylor Swift",
+  src: new URL("./Taylor Swift – Blank Space (Lyrics) - Latin City.mp3", import.meta.url).href,
 };
 
 const secretFlowerId = "f-2";
@@ -2173,12 +2185,17 @@ export default function App() {
   const cueRef = useRef<HTMLButtonElement>(null);
   const noteCardRef = useRef<HTMLButtonElement>(null);
   const noteGlowRef = useRef<HTMLSpanElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const musicAutoplayArmedRef = useRef(true);
   const noteReadyRef = useRef(false);
   const noteAnimatingRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("intro");
   const [isInteractive, setIsInteractive] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [activeSecretFlowerId, setActiveSecretFlowerId] = useState<string | null>(null);
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [musicReady, setMusicReady] = useState(false);
+  const [musicError, setMusicError] = useState(false);
   const [openingStageSize, setOpeningStageSize] = useState({ width: 0, height: 0 });
   const [reducedMotion, setReducedMotion] = useState(getInitialReducedMotion);
   const [performanceProfile, setPerformanceProfile] = useState<PerformanceProfile>(getInitialProfile);
@@ -2310,6 +2327,53 @@ export default function App() {
     });
     previousOpeningStageSizeRef.current = openingStageSize;
   }, [openingStageSize]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    if (!audio) {
+      debugLog("background track setup skipped because audio ref is missing");
+      return undefined;
+    }
+
+    audio.volume = 0.22;
+    audio.loop = true;
+    void audio.play().catch((error) => {
+      debugLog("background track initial autoplay failed", {
+        message: error instanceof Error ? error.message : "unknown initial autoplay failure",
+      });
+    });
+
+    return () => {
+      audio.pause();
+    };
+  }, []);
+
+  useEffect(() => {
+    const tryAutoplay = () => {
+      if (!musicAutoplayArmedRef.current || musicPlaying || musicError) {
+        return;
+      }
+
+      const audio = audioRef.current;
+
+      if (!audio) {
+        return;
+      }
+
+      void audio.play().catch((error) => {
+        debugLog("background track autoplay failed", {
+          message: error instanceof Error ? error.message : "unknown autoplay failure",
+        });
+      });
+    };
+
+    window.addEventListener("pointerdown", tryAutoplay, true);
+
+    return () => {
+      window.removeEventListener("pointerdown", tryAutoplay, true);
+    };
+  }, [musicError, musicPlaying]);
 
   useLayoutEffect(() => {
     const sceneElement = openingSceneRef.current;
@@ -2893,6 +2957,31 @@ export default function App() {
     setActiveSecretFlowerId((current) =>
       current === targetFlowerId ? null : targetFlowerId,
     );
+  };
+
+  const toggleBackgroundTrack = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    const audio = audioRef.current;
+
+    if (!audio || musicError) {
+      return;
+    }
+
+    musicAutoplayArmedRef.current = false;
+
+    if (musicPlaying) {
+      audio.pause();
+      setMusicPlaying(false);
+      return;
+    }
+
+    void audio.play().catch((error) => {
+      debugLog("background track manual play failed", {
+        message: error instanceof Error ? error.message : "unknown play failure",
+      });
+      setMusicPlaying(false);
+    });
   };
 
   const runArrangeSequence = () => {
@@ -3569,6 +3658,68 @@ export default function App() {
       }}
       role="presentation"
     >
+      <audio
+        ref={audioRef}
+        src={backgroundTrack.src}
+        autoPlay
+        preload="auto"
+        onCanPlay={() => {
+          setMusicReady(true);
+          setMusicError(false);
+          if (musicAutoplayArmedRef.current && !musicPlaying) {
+            const audio = audioRef.current;
+
+            if (audio) {
+              void audio.play().catch((error) => {
+                debugLog("background track ready autoplay failed", {
+                  message: error instanceof Error ? error.message : "unknown ready autoplay failure",
+                });
+              });
+            }
+          }
+        }}
+        onPlay={() => {
+          musicAutoplayArmedRef.current = false;
+          setMusicPlaying(true);
+        }}
+        onPause={() => {
+          setMusicPlaying(false);
+        }}
+        onError={() => {
+          debugLog("background track failed to load", {
+            src: backgroundTrack.src,
+          });
+          setMusicError(true);
+          setMusicReady(false);
+          setMusicPlaying(false);
+        }}
+      />
+
+      <div className="music-card">
+        <div className="music-card__copy">
+          <span className="music-card__eyebrow">Now Playing</span>
+          <strong className="music-card__title">{backgroundTrack.title}</strong>
+          <span className="music-card__artist">{backgroundTrack.artist}</span>
+          <span className="music-card__status">
+            {musicError
+              ? "Track unavailable"
+              : musicReady
+                ? musicPlaying
+                  ? "Playing"
+                  : "Paused"
+                : "Loading..."}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="music-card__button"
+          onClick={toggleBackgroundTrack}
+          disabled={musicError || !musicReady}
+        >
+          {musicPlaying ? "Pause" : "Play"}
+        </button>
+      </div>
+
       <div className="backdrop">
         <div className="backdrop__gradient" />
         <div className="backdrop__grain" />
