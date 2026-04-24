@@ -714,8 +714,15 @@ function NoteCard({
           <span className="note-card__heart-shell">
             <svg className="note-card__heart" viewBox="0 0 24 24" aria-hidden="true">
               <path
-                d="M12 20.6 4.7 13.9A4.8 4.8 0 0 1 11.8 7l.2.2.2-.2a4.8 4.8 0 0 1 7.1 6.9Z"
-                fill="rgba(255,255,255,0.92)"
+                d="M12 19.2 5.8 13.3C3.9 11.5 3.8 8.4 5.5 6.6c1.7-1.9 4.6-2 6.4-.3l.1.2.1-.2c1.8-1.7 4.7-1.6 6.4.3 1.7 1.8 1.6 4.9-.3 6.7Z"
+                fill="currentColor"
+              />
+              <path
+                d="M8.9 9.2c.9-1 2.2-1.2 3.2-.6"
+                fill="none"
+                stroke="rgba(255,255,255,0.3)"
+                strokeLinecap="round"
+                strokeWidth="0.95"
               />
             </svg>
           </span>
@@ -726,6 +733,20 @@ function NoteCard({
           <span className="note-card__body">{note.body}</span>
           <span className="note-card__signature">{note.signature}</span>
         </span>
+      </span>
+      <span className="note-card__occlusion note-card__occlusion--upper" aria-hidden="true">
+        <svg viewBox="0 0 36 36" className="note-card__occlusion-svg">
+          <path d="M11 34 C10 24 12 14 18 4" className="note-card__occlusion-stem" />
+          <path d="M17 13 C9 8 5 12 5 20 C12 21 16 18 17 13 Z" className="note-card__occlusion-leaf note-card__occlusion-leaf--sage" />
+          <path d="M18 18 C27 12 31 16 30 23 C23 25 19 23 18 18 Z" className="note-card__occlusion-leaf note-card__occlusion-leaf--moss" />
+        </svg>
+      </span>
+      <span className="note-card__occlusion note-card__occlusion--lower" aria-hidden="true">
+        <svg viewBox="0 0 40 28" className="note-card__occlusion-svg">
+          <path d="M4 22 C15 18 24 16 36 10" className="note-card__occlusion-stem note-card__occlusion-stem--soft" />
+          <path d="M16 18 C9 14 6 18 6 24 C12 24 15 22 16 18 Z" className="note-card__occlusion-leaf note-card__occlusion-leaf--olive" />
+          <path d="M27 14 C33 9 37 12 36 18 C30 19 27 18 27 14 Z" className="note-card__occlusion-leaf note-card__occlusion-leaf--sage" />
+        </svg>
       </span>
     </button>
   );
@@ -1018,7 +1039,7 @@ export default function App() {
         x: 0,
         y: 20,
         scale: 0.82,
-        rotate: -12,
+        rotate: -22,
       });
       gsap.set(noteGlowRef.current, { opacity: 0, scale: 0.8 });
 
@@ -1168,7 +1189,7 @@ export default function App() {
         x: 0,
         y: 20,
         scale: 0.82,
-        rotate: -12,
+        rotate: -22,
         width: "",
         height: "",
       });
@@ -1179,12 +1200,12 @@ export default function App() {
     gsap.killTweensOf([noteCard, noteGlow]);
 
     if (reducedMotion) {
-      gsap.set(noteCard, { opacity: 1, x: 0, y: 0, scale: 1, rotate: -7 });
+      gsap.set(noteCard, { opacity: 1, x: 0, y: 0, scale: 1, rotate: -18 });
       gsap.set(noteGlow, { opacity: 0.26, scale: 1 });
       noteBaseRef.current = {
         width: noteCard.getBoundingClientRect().width,
         height: noteCard.getBoundingClientRect().height,
-        rotate: -7,
+        rotate: -18,
       };
       noteReadyRef.current = true;
       return;
@@ -1211,7 +1232,7 @@ export default function App() {
           opacity: 1,
           y: 0,
           scale: 1,
-          rotate: -7,
+          rotate: -18,
           duration: 0.74,
           delay: 0.28,
           ease: motion.easeAccent,
