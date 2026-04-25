@@ -92,6 +92,61 @@ type ButterflyVisualStyle = {
   shadowColor: string;
 };
 
+type GiftBurstPhase = "idle" | "opening" | "burst" | "poem";
+
+type GiftBurstButterfly = {
+  id: string;
+  variant: ButterflyVariant;
+  size: number;
+  rotate: number;
+  flightX: number;
+  flightY: number;
+  flightDuration: number;
+  flapDuration: number;
+  delay: number;
+  scale: number;
+};
+
+type GiftBirdPalette = {
+  bodyColor: string;
+  breastColor: string;
+  bellyColor: string;
+  wingColor: string;
+  tailColor: string;
+  beakColor: string;
+  outlineColor: string;
+  legColor: string;
+  shadowColor: string;
+};
+
+type GiftBurstBird = {
+  id: string;
+  size: number;
+  rotate: number;
+  flightX: number;
+  flightY: number;
+  flightDuration: number;
+  delay: number;
+  scale: number;
+  palette: GiftBirdPalette;
+};
+
+type GiftAmbientBird = {
+  id: string;
+  left: number;
+  top: number;
+  size: number;
+  rotate: number;
+  scale: number;
+  flightX: number;
+  flightY: number;
+  flightDuration: number;
+  driftDuration: number;
+  wingDuration: number;
+  delay: number;
+  palette: GiftBirdPalette;
+};
+
 type NoteCopy = {
   closedLabel: string;
   eyebrow: string;
@@ -325,6 +380,46 @@ const backgroundTrack: MusicTrack = {
   artist: "Mercuzio Pianist",
   src: new URL("./J'y suis jamais allé (Theme from Amelie) - Mercuzio Pianist.mp3", import.meta.url).href,
 };
+
+const giftPoemLines = [
+  "DESEM Kİ",
+  "",
+  "Desem ki vakitlerden bir Nisan akşamıdır,",
+  "Rüzgârların en ferahlatıcısı senden esiyor,",
+  "Sende seyrediyorum denizlerin en mavisini,",
+  "Ormanların en kuytusunu sende gezmekteyim,",
+  "Senden kopardım çiçeklerin en solmazını,",
+  "Toprakların en bereketlisini sende sürdüm,",
+  "Sende tattım yemişlerin cümlesini.",
+  "",
+  "Desem ki sen benim için,",
+  "Hava kadar lazım,",
+  "Ekmek kadar mübarek,",
+  "Su gibi aziz bir şeysin;",
+  "Nimettensin, nimettensin!",
+  "Desem  ki...",
+  "İnan bana sevgilim inan,",
+  "Evimde şenliksin, bahçemde bahar;",
+  "Ve soframda en eski şarap.",
+  "Ben sende yaşıyorum,",
+  "Sen bende hüküm sürmektesin.",
+  "Bırak ben söyleyeyim güzelliğini,",
+  "Rüzgârlarla, nehirlerle, kuşlarla beraber.",
+  "Günlerden sonra bir gün,",
+  "Şayet sesimi farkedemezsen,",
+  "Rüzgârların, nehirlerin, kuşların sesinden,",
+  "Bil ki ölmüşüm.",
+  "Fakat yine üzülme, müsterih ol;",
+  "Kabirde böceklere ezberletirim güzelliğini,",
+  "Ve neden sonra",
+  "Tekrar duyduğun gün sesimi gökkubbede,",
+  "Hatırla ki mahşer günüdür",
+  "Ortalığa düşmüşüm seni arıyorum.",
+] as const;
+
+const giftPoemPreviewLineCount = 7;
+const giftPoemPreview = giftPoemLines.slice(0, giftPoemPreviewLineCount).join("\n");
+const giftPoemFull = giftPoemLines.join("\n");
 
 const secretFlowerId = "f-2";
 const secretFlowerNotes: Record<string, SecretNoteCopy> = {
@@ -1292,6 +1387,349 @@ function renderButterflyVariant(variant: ButterflyVariant, style: ButterflyVisua
   }
 }
 
+function buildGiftBurstButterflies(): GiftBurstButterfly[] {
+  return [
+    { id: "gift-butterfly-1", variant: "pink-ribbon", size: 28, rotate: -12, flightX: -7.4, flightY: -10.8, flightDuration: 1.96, flapDuration: 0.86, delay: 0.02, scale: 0.88 },
+    { id: "gift-butterfly-2", variant: "sky-swallowtail", size: 31, rotate: 8, flightX: -4.8, flightY: -12.4, flightDuration: 2.08, flapDuration: 0.92, delay: 0.08, scale: 0.94 },
+    { id: "gift-butterfly-3", variant: "coral-glow", size: 26, rotate: -5, flightX: -1.9, flightY: -9.8, flightDuration: 1.84, flapDuration: 0.82, delay: 0.12, scale: 0.82 },
+    { id: "gift-butterfly-4", variant: "lilac-mist", size: 30, rotate: 10, flightX: 1.8, flightY: -12.8, flightDuration: 2.02, flapDuration: 0.9, delay: 0.16, scale: 0.9 },
+    { id: "gift-butterfly-5", variant: "ruby-drift", size: 27, rotate: -8, flightX: 4.9, flightY: -10.6, flightDuration: 1.92, flapDuration: 0.84, delay: 0.2, scale: 0.84 },
+    { id: "gift-butterfly-6", variant: "teal-bloom", size: 29, rotate: 12, flightX: 7.3, flightY: -11.4, flightDuration: 2.06, flapDuration: 0.9, delay: 0.26, scale: 0.88 },
+    { id: "gift-butterfly-7", variant: "peach-soft", size: 24, rotate: -10, flightX: -5.8, flightY: -8.2, flightDuration: 1.78, flapDuration: 0.8, delay: 0.18, scale: 0.76 },
+    { id: "gift-butterfly-8", variant: "violet-velvet", size: 25, rotate: 7, flightX: 5.9, flightY: -8.8, flightDuration: 1.86, flapDuration: 0.82, delay: 0.28, scale: 0.78 },
+  ];
+}
+
+const giftBirdPalettes: GiftBirdPalette[] = [
+  {
+    bodyColor: "#b65db5",
+    breastColor: "#d97ad7",
+    bellyColor: "#f3a5f0",
+    wingColor: "#8c3d87",
+    tailColor: "#94458d",
+    beakColor: "#28253a",
+    outlineColor: "#4a2c56",
+    legColor: "#55495d",
+    shadowColor: "rgba(145, 84, 145, 0.24)",
+  },
+  {
+    bodyColor: "#6b9fcb",
+    breastColor: "#78acd4",
+    bellyColor: "#9ec3e1",
+    wingColor: "#3e6689",
+    tailColor: "#49739a",
+    beakColor: "#1f2431",
+    outlineColor: "#33516d",
+    legColor: "#4b5663",
+    shadowColor: "rgba(92, 134, 168, 0.22)",
+  },
+  {
+    bodyColor: "#90a85b",
+    breastColor: "#9fb86c",
+    bellyColor: "#c3d08d",
+    wingColor: "#6f7f41",
+    tailColor: "#718545",
+    beakColor: "#232434",
+    outlineColor: "#4d5d36",
+    legColor: "#55574f",
+    shadowColor: "rgba(116, 139, 71, 0.22)",
+  },
+  {
+    bodyColor: "#e7ba8f",
+    breastColor: "#f5d1ac",
+    bellyColor: "#ffe7cb",
+    wingColor: "#b4865f",
+    tailColor: "#c09067",
+    beakColor: "#2a2836",
+    outlineColor: "#876245",
+    legColor: "#655649",
+    shadowColor: "rgba(175, 137, 99, 0.22)",
+  },
+  {
+    bodyColor: "#5f88b8",
+    breastColor: "#74a1cb",
+    bellyColor: "#9ebfde",
+    wingColor: "#3d5b84",
+    tailColor: "#44658f",
+    beakColor: "#232333",
+    outlineColor: "#304969",
+    legColor: "#4b5561",
+    shadowColor: "rgba(89, 122, 166, 0.22)",
+  },
+];
+
+function buildGiftBurstBirds(): GiftBurstBird[] {
+  return [];
+}
+
+function buildGiftAmbientButterflies(): Butterfly[] {
+  return [
+    { id: "gift-ambient-butterfly-1", left: 37, top: 18, size: 27, rotate: -8, variant: "pink-ribbon", flightX: 4.2, flightY: -3.8, flightDuration: 10.4, driftDuration: 3.8, flapDuration: 0.88, delay: -1.6, scale: 0.84 },
+    { id: "gift-ambient-butterfly-2", left: 44, top: 11, size: 30, rotate: 6, variant: "sky-swallowtail", flightX: -3.6, flightY: -4.8, flightDuration: 11.2, driftDuration: 4.2, flapDuration: 0.92, delay: -2.4, scale: 0.9 },
+    { id: "gift-ambient-butterfly-3", left: 56, top: 15, size: 26, rotate: -10, variant: "violet-velvet", flightX: 3.8, flightY: -3.2, flightDuration: 9.8, driftDuration: 3.5, flapDuration: 0.82, delay: -0.8, scale: 0.82 },
+    { id: "gift-ambient-butterfly-4", left: 63, top: 24, size: 28, rotate: 9, variant: "teal-bloom", flightX: -4.5, flightY: -4.1, flightDuration: 10.8, driftDuration: 4.1, flapDuration: 0.88, delay: -3.2, scale: 0.86 },
+    { id: "gift-ambient-butterfly-5", left: 48, top: 31, size: 24, rotate: 4, variant: "peach-soft", flightX: 3.2, flightY: -2.8, flightDuration: 9.4, driftDuration: 3.2, flapDuration: 0.8, delay: -1.1, scale: 0.76 },
+    { id: "gift-ambient-butterfly-6", left: 59, top: 19, size: 25, rotate: -7, variant: "coral-glow", flightX: -3.8, flightY: -3.4, flightDuration: 10.1, driftDuration: 3.7, flapDuration: 0.84, delay: -2.8, scale: 0.8 },
+  ];
+}
+
+function buildGiftAmbientBirds(): GiftAmbientBird[] {
+  return [
+    { id: "gift-ambient-bird-1", left: 24, top: 16, size: 46, rotate: -10, scale: 0.98, flightX: 3.4, flightY: -2.3, flightDuration: 11.4, driftDuration: 4.1, wingDuration: 1.42, delay: -1.8, palette: giftBirdPalettes[0] },
+    { id: "gift-ambient-bird-2", left: 34, top: 10, size: 44, rotate: 7, scale: 0.94, flightX: -3.2, flightY: -1.8, flightDuration: 12.2, driftDuration: 4.4, wingDuration: 1.56, delay: -2.5, palette: giftBirdPalettes[1] },
+    { id: "gift-ambient-bird-3", left: 47, top: 8, size: 42, rotate: -4, scale: 0.96, flightX: 3.8, flightY: -2.1, flightDuration: 11.8, driftDuration: 4.2, wingDuration: 1.48, delay: -3.2, palette: giftBirdPalettes[2] },
+    { id: "gift-ambient-bird-4", left: 60, top: 11, size: 45, rotate: 6, scale: 0.98, flightX: -4.1, flightY: -1.9, flightDuration: 12.8, driftDuration: 4.6, wingDuration: 1.54, delay: -4.1, palette: giftBirdPalettes[3] },
+    { id: "gift-ambient-bird-5", left: 73, top: 16, size: 44, rotate: -7, scale: 0.96, flightX: 3.2, flightY: -2.2, flightDuration: 11.6, driftDuration: 4.1, wingDuration: 1.44, delay: -1.2, palette: giftBirdPalettes[4] },
+    { id: "gift-ambient-bird-6", left: 20, top: 27, size: 48, rotate: 5, scale: 1, flightX: -3.4, flightY: -1.6, flightDuration: 12.5, driftDuration: 4.7, wingDuration: 1.6, delay: -2.9, palette: giftBirdPalettes[1] },
+    { id: "gift-ambient-bird-7", left: 36, top: 30, size: 43, rotate: -6, scale: 0.94, flightX: 4, flightY: -1.7, flightDuration: 11.2, driftDuration: 3.9, wingDuration: 1.38, delay: -0.9, palette: giftBirdPalettes[2] },
+    { id: "gift-ambient-bird-8", left: 52, top: 25, size: 46, rotate: 8, scale: 1.02, flightX: -3.8, flightY: -1.8, flightDuration: 12.9, driftDuration: 4.8, wingDuration: 1.62, delay: -3.8, palette: giftBirdPalettes[0] },
+    { id: "gift-ambient-bird-9", left: 66, top: 29, size: 44, rotate: -5, scale: 0.98, flightX: 3.6, flightY: -1.5, flightDuration: 11.9, driftDuration: 4.2, wingDuration: 1.46, delay: -2.1, palette: giftBirdPalettes[3] },
+    { id: "gift-ambient-bird-10", left: 80, top: 25, size: 47, rotate: 4, scale: 1, flightX: -3.1, flightY: -1.7, flightDuration: 12.4, driftDuration: 4.5, wingDuration: 1.58, delay: -4.5, palette: giftBirdPalettes[4] },
+  ];
+}
+
+function renderGiftBird(bird: { palette: GiftBirdPalette }) {
+  const { palette } = bird;
+
+  return (
+    <svg className="gift-bird__svg" viewBox="0 0 124 92" role="presentation" aria-hidden="true">
+      <path
+        d="M18 57 C29 50 38 48 47 50 C40 59 30 63 18 57 Z"
+        fill={palette.tailColor}
+        stroke={palette.outlineColor}
+        strokeWidth="2.8"
+        strokeLinejoin="round"
+      />
+      <g className="gift-bird__wings">
+        <path
+          d="M55 50 C44 33 29 28 18 34 C18 47 32 59 52 58 Z"
+          fill={palette.wingColor}
+          stroke={palette.outlineColor}
+          strokeWidth="2.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M49 46 C41 39 32 38 26 41 C30 48 38 53 49 53 Z"
+          fill="rgba(255,255,255,0.22)"
+          opacity="0.7"
+        />
+      </g>
+      <ellipse
+        cx="66"
+        cy="54"
+        rx="28"
+        ry="19"
+        fill={palette.bodyColor}
+        stroke={palette.outlineColor}
+        strokeWidth="2.8"
+      />
+      <ellipse cx="74" cy="60" rx="17" ry="10.5" fill={palette.bellyColor} />
+      <ellipse cx="76" cy="49" rx="17" ry="14" fill={palette.breastColor} />
+      <circle
+        cx="89"
+        cy="38"
+        r="13"
+        fill={palette.breastColor}
+        stroke={palette.outlineColor}
+        strokeWidth="2.8"
+      />
+      <path
+        d="M82 26 C85 19 91 16 96 17 C95 22 90 26 84 29 Z"
+        fill={palette.bodyColor}
+        stroke={palette.outlineColor}
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M101 39 L116 35 L102 45 Z"
+        fill={palette.beakColor}
+        stroke={palette.outlineColor}
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <circle cx="92" cy="37" r="3.1" fill="#ffffff" />
+      <circle cx="93" cy="37" r="1.4" fill={palette.outlineColor} />
+      <path
+        d="M63 70 C61 75 60 79 60 84"
+        stroke={palette.legColor}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M72 70 C70 75 69 79 69 84"
+        stroke={palette.legColor}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <path d="M58 84 H54" stroke={palette.legColor} strokeWidth="2" strokeLinecap="round" />
+      <path d="M68 84 H72" stroke={palette.legColor} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function GiftBox({
+  opened,
+  burstPhase,
+  reducedMotion,
+  burstButterflies,
+  burstBirds,
+  onOpen,
+}: {
+  opened: boolean;
+  burstPhase: GiftBurstPhase;
+  reducedMotion: boolean;
+  burstButterflies: GiftBurstButterfly[];
+  burstBirds: GiftBurstBird[];
+  onOpen: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="gift-box"
+      data-open={opened}
+      data-phase={burstPhase}
+      aria-label={opened ? "Open the poem" : "Open the gift box"}
+      onClick={onOpen}
+    >
+      <span className="gift-box__shadow" aria-hidden="true" />
+      <span className="gift-box__glow" aria-hidden="true" />
+      {!reducedMotion && burstPhase !== "idle" && burstPhase !== "poem" ? (
+        <span className="gift-box__burst" aria-hidden="true">
+          {burstButterflies.map((butterfly) => {
+            const butterflyStyle = getButterflyVariantStyle(butterfly.variant);
+
+            return (
+              <span
+                key={butterfly.id}
+                className="gift-burst-butterfly"
+                style={
+                  {
+                    width: `${Math.round(butterfly.size * 1.45)}px`,
+                    height: `${Math.round(butterfly.size * 1.16)}px`,
+                    "--gift-burst-x": `${butterfly.flightX}rem`,
+                    "--gift-burst-y": `${butterfly.flightY}rem`,
+                    "--gift-burst-duration": `${butterfly.flightDuration}s`,
+                    "--gift-burst-delay": `${butterfly.delay}s`,
+                    "--gift-burst-rotate": `${butterfly.rotate}deg`,
+                    "--gift-burst-scale": butterfly.scale,
+                    "--gift-burst-flap-duration": `${butterfly.flapDuration}s`,
+                    "--gift-burst-shadow-color": butterflyStyle.shadowColor,
+                  } as CSSProperties
+                }
+              >
+                <span className="gift-burst-butterfly__float">
+                  <svg className="gift-burst-butterfly__svg" viewBox="0 0 100 72" role="presentation" aria-hidden="true">
+                    {renderButterflyVariant(butterfly.variant, butterflyStyle)}
+                    <path
+                      className="gift-burst-butterfly__body"
+                      d="M49.2 18 C47.2 25 46.8 36 47.7 48 C48.2 56 49 61 50 64 C51 61 51.8 56 52.3 48 C53.2 36 52.8 25 50.8 18 Z"
+                      fill={butterflyStyle.bodyColor}
+                    />
+                    <ellipse cx="50" cy="27" rx="4.2" ry="8.6" fill={butterflyStyle.bodyColor} opacity="0.94" />
+                    <path
+                      className="gift-burst-butterfly__antenna"
+                      d="M49 22 C44.5 14 39.5 11.5 35.5 10.5"
+                      stroke={butterflyStyle.antennaColor}
+                    />
+                    <path
+                      className="gift-burst-butterfly__antenna"
+                      d="M51 22 C55.5 14 60.5 11.5 64.5 10.5"
+                      stroke={butterflyStyle.antennaColor}
+                    />
+                  </svg>
+                </span>
+              </span>
+            );
+          })}
+          <span className="gift-box__spark gift-box__spark--one" />
+          <span className="gift-box__spark gift-box__spark--two" />
+          <span className="gift-box__spark gift-box__spark--three" />
+        </span>
+      ) : null}
+      <svg className="gift-box__illustration" viewBox="0 0 160 160" role="presentation" aria-hidden="true">
+        <g className="gift-box__base-group">
+          <ellipse className="gift-box__base-shadow" cx="80" cy="132" rx="42" ry="12" />
+          <rect className="gift-box__base-front" x="34" y="62" width="92" height="64" rx="18" />
+          <path className="gift-box__base-side gift-box__base-side--left" d="M34 76 H58 V126 H34 Z" />
+          <path className="gift-box__base-side gift-box__base-side--right" d="M102 76 H126 V126 H102 Z" />
+          <rect className="gift-box__ribbon-vertical" x="69" y="62" width="22" height="64" rx="10" />
+          <rect className="gift-box__ribbon-horizontal" x="34" y="84" width="92" height="17" rx="8.5" />
+          <path className="gift-box__base-highlight" d="M45 70 C56 66 66 65 77 66 V120 C66 119 56 117 45 113 Z" />
+        </g>
+        <g className="gift-box__lid-group">
+          <rect className="gift-box__lid-top" x="28" y="44" width="104" height="28" rx="14" />
+          <rect className="gift-box__lid-front" x="28" y="52" width="104" height="20" rx="10" />
+          <rect className="gift-box__lid-ribbon-vertical" x="69" y="44" width="22" height="28" rx="10" />
+          <rect className="gift-box__lid-ribbon-horizontal" x="28" y="51" width="104" height="14" rx="7" />
+          <path className="gift-box__bow-loop gift-box__bow-loop--left" d="M79 40 C66 18 44 20 45 37 C45 49 62 51 74 45 Z" />
+          <path className="gift-box__bow-loop gift-box__bow-loop--right" d="M81 40 C94 18 116 20 115 37 C115 49 98 51 86 45 Z" />
+          <ellipse className="gift-box__bow-knot" cx="80" cy="40" rx="10" ry="8" />
+          <path className="gift-box__bow-tail gift-box__bow-tail--left" d="M75 46 C67 54 62 62 63 72 C72 68 76 60 78 51 Z" />
+          <path className="gift-box__bow-tail gift-box__bow-tail--right" d="M85 46 C93 54 98 62 97 72 C88 68 84 60 82 51 Z" />
+          <path className="gift-box__lid-shine" d="M42 48 C56 44 69 43 80 44 V54 C67 53 54 54 42 58 Z" />
+        </g>
+      </svg>
+    </button>
+  );
+}
+
+function GiftPoemOverlay({
+  visible,
+  expanded,
+  onToggleExpanded,
+  onClose,
+}: {
+  visible: boolean;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  onClose: () => void;
+}) {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div
+      className="gift-poem-overlay"
+      role="presentation"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
+    >
+      <div
+        className="gift-poem-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gift-poem-title"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <button type="button" className="gift-poem-card__close" aria-label="Close the poem" onClick={onClose}>
+          Kapat
+        </button>
+        <span className="gift-poem-card__garland" aria-hidden="true">
+          <MiniSparkleIcon className="gift-poem-card__garland-icon gift-poem-card__garland-icon--sparkle" />
+          <span className="gift-poem-card__garland-line" />
+          <MiniHeartIcon className="gift-poem-card__garland-icon gift-poem-card__garland-icon--heart" />
+          <MiniBloomIcon className="gift-poem-card__garland-icon gift-poem-card__garland-icon--flower" centerFill="#fff0a8" />
+        </span>
+        <span className="gift-poem-card__eyebrow">kutunun içinden dökülen bir şiir</span>
+        <h2 id="gift-poem-title" className="gift-poem-card__title">
+          Desem ki
+        </h2>
+        <span className="gift-poem-card__body">{expanded ? giftPoemFull : giftPoemPreview}</span>
+        <div className="gift-poem-card__actions">
+          <button type="button" className="gift-poem-card__more" onClick={onToggleExpanded}>
+            {expanded ? "Daha az göster" : "Devamını oku"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -2193,6 +2631,10 @@ export default function App() {
   const [isInteractive, setIsInteractive] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const [activeSecretFlowerId, setActiveSecretFlowerId] = useState<string | null>(null);
+  const [giftBoxOpened, setGiftBoxOpened] = useState(false);
+  const [giftBurstPhase, setGiftBurstPhase] = useState<GiftBurstPhase>("idle");
+  const [poemVisible, setPoemVisible] = useState(false);
+  const [poemExpanded, setPoemExpanded] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
   const [musicError, setMusicError] = useState(false);
@@ -2209,6 +2651,10 @@ export default function App() {
 
   const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
   const butterflies = useMemo(() => buildButterflies(performanceProfile), [performanceProfile]);
+  const giftBurstButterflies = useMemo(() => buildGiftBurstButterflies(), []);
+  const giftBurstBirds = useMemo(() => buildGiftBurstBirds(), []);
+  const giftAmbientButterflies = useMemo(() => buildGiftAmbientButterflies(), []);
+  const giftAmbientBirds = useMemo(() => buildGiftAmbientBirds(), []);
   const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
   const bouquetGlints = useMemo(() => buildBouquetGlints(), []);
   const openingFlowerConfigs = useMemo(
@@ -2243,6 +2689,11 @@ export default function App() {
           : "tap to arrange";
   const showButterflies =
     phase === "arranging" || phase === "clustered" || phase === "bouquet";
+  const giftCreaturesReleased = giftBoxOpened && (reducedMotion || giftBurstPhase !== "idle");
+  const visibleButterflies = useMemo(
+    () => (giftCreaturesReleased ? [...butterflies, ...giftAmbientButterflies] : butterflies),
+    [butterflies, giftAmbientButterflies, giftCreaturesReleased],
+  );
   const openingStageStyle =
     openingStageSize.width > 0 && openingStageSize.height > 0
       ? ({
@@ -2327,6 +2778,44 @@ export default function App() {
     });
     previousOpeningStageSizeRef.current = openingStageSize;
   }, [openingStageSize]);
+
+  useEffect(() => {
+    if (phase === "bouquet") {
+      return;
+    }
+
+    setGiftBoxOpened(false);
+    setGiftBurstPhase("idle");
+    setPoemVisible(false);
+    setPoemExpanded(false);
+  }, [phase]);
+
+  useEffect(() => {
+    if (!giftBoxOpened || reducedMotion) {
+      return undefined;
+    }
+
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
+    if (giftBurstPhase === "opening") {
+      timerId = setTimeout(() => {
+        setGiftBurstPhase("burst");
+      }, 320);
+    } else if (giftBurstPhase === "burst") {
+      timerId = setTimeout(() => {
+        setGiftBurstPhase("poem");
+        setPoemVisible(true);
+      }, 1020);
+    } else if (giftBurstPhase === "poem") {
+      setPoemVisible(true);
+    }
+
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [giftBoxOpened, giftBurstPhase, reducedMotion]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -2982,6 +3471,40 @@ export default function App() {
       });
       setMusicPlaying(false);
     });
+  };
+
+  const openGiftBox = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (phase !== "bouquet") {
+      return;
+    }
+
+    setNoteOpen(false);
+    setActiveSecretFlowerId(null);
+    setPoemVisible(false);
+    setPoemExpanded(false);
+
+    if (giftBoxOpened) {
+      setGiftBurstPhase("poem");
+      setPoemVisible(true);
+      return;
+    }
+
+    setGiftBoxOpened(true);
+
+    if (reducedMotion) {
+      setGiftBurstPhase("poem");
+      setPoemVisible(true);
+      return;
+    }
+
+    setGiftBurstPhase("opening");
+  };
+
+  const closeGiftPoem = () => {
+    setPoemVisible(false);
+    setPoemExpanded(false);
   };
 
   const runArrangeSequence = () => {
@@ -3745,7 +4268,7 @@ export default function App() {
 
       {showButterflies ? (
         <div className="butterfly-layer" aria-hidden="true">
-          {butterflies.map((butterfly) => (
+          {visibleButterflies.map((butterfly) => (
             (() => {
               const butterflyStyle = getButterflyVariantStyle(butterfly.variant);
 
@@ -3881,6 +4404,35 @@ export default function App() {
             />
           ))}
         </div>
+        {phase === "bouquet" && giftCreaturesReleased ? (
+          <div className="gift-bird-layer" aria-hidden="true">
+            {giftAmbientBirds.map((bird) => (
+              <span
+                key={bird.id}
+                className="gift-bird gift-bird--ambient"
+                style={
+                  {
+                    left: `${bird.left}%`,
+                    top: `${bird.top}%`,
+                    width: `${bird.size}px`,
+                    height: `${Math.round(bird.size * 0.78)}px`,
+                    "--gift-bird-rotate": `${bird.rotate}deg`,
+                    "--gift-bird-scale": bird.scale,
+                    "--gift-bird-flight-x": `${bird.flightX}vw`,
+                    "--gift-bird-flight-y": `${bird.flightY}vh`,
+                    "--gift-bird-flight-duration": `${bird.flightDuration}s`,
+                    "--gift-bird-drift-duration": `${bird.driftDuration}s`,
+                    "--gift-bird-wing-duration": `${bird.wingDuration}s`,
+                    "--gift-bird-delay": `${bird.delay}s`,
+                    "--gift-bird-shadow-color": bird.palette.shadowColor,
+                  } as CSSProperties
+                }
+              >
+                <span className="gift-bird__float">{renderGiftBird(bird)}</span>
+              </span>
+            ))}
+          </div>
+        ) : null}
         <div className="bouquet-flowers">
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="cluster" />
           <BouquetBotanicalLayer flowers={bouquetFlowerConfigs} stage="bouquet" />
@@ -3910,6 +4462,16 @@ export default function App() {
             note={secretFlowerNotes[flower.id]}
           />
         ))}
+        {phase === "bouquet" ? (
+          <GiftBox
+            opened={giftBoxOpened}
+            burstPhase={giftBurstPhase}
+            reducedMotion={reducedMotion}
+            burstButterflies={giftBurstButterflies}
+            burstBirds={giftBurstBirds}
+            onOpen={openGiftBox}
+          />
+        ) : null}
         <NoteCard
           noteRef={noteCardRef}
           glowRef={noteGlowRef}
@@ -3925,6 +4487,15 @@ export default function App() {
         ) : null}
         <BouquetWrap />
       </div>
+
+      <GiftPoemOverlay
+        visible={poemVisible}
+        expanded={poemExpanded}
+        onToggleExpanded={() => {
+          setPoemExpanded((current) => !current);
+        }}
+        onClose={closeGiftPoem}
+      />
 
       <button
         type="button"
