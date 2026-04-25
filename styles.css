@@ -331,7 +331,6 @@ select {
   animation-delay: 0.28s;
 }
 
-.gift-bird--burst,
 .gift-burst-butterfly {
   position: absolute;
   left: 50%;
@@ -403,7 +402,7 @@ select {
 
 .gift-bird-layer {
   position: absolute;
-  inset: -8% -16% 28% -16%;
+  inset: -6% -14% 34% -14%;
   z-index: 89;
   pointer-events: none;
   overflow: visible;
@@ -419,13 +418,64 @@ select {
     scale(var(--gift-bird-scale, 1));
   transform-origin: 50% 50%;
   filter: drop-shadow(0 10px 16px var(--gift-bird-shadow-color, rgba(176, 110, 122, 0.16)));
-  animation: gift-bird-flight var(--gift-bird-flight-duration, 12s) ease-in-out infinite alternate;
+}
+
+.gift-bird__motion,
+.gift-bird--ambient .gift-bird__float {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gift-bird--ambient[data-stage="release"] {
+  animation:
+    gift-bird-release var(--gift-bird-release-duration, 2.2s) cubic-bezier(0.22, 0.88, 0.32, 1) forwards;
+  animation-delay: var(--gift-bird-release-delay, 0s);
+}
+
+.gift-bird--ambient[data-stage="ambient"] {
+  opacity: 0.88;
+  animation: gift-bird-flight var(--gift-bird-flight-duration, 9s) ease-in-out infinite alternate;
   animation-delay: var(--gift-bird-delay, 0s);
 }
 
-.gift-bird--ambient .gift-bird__float {
+.gift-bird--ambient[data-stage="ambient"] .gift-bird__float {
   animation: gift-bird-drift var(--gift-bird-drift-duration, 4.6s) ease-in-out infinite;
   animation-delay: var(--gift-bird-delay, 0s);
+}
+
+.birthday-day-card {
+  position: absolute;
+  left: clamp(1rem, 2.8vw, 1.8rem);
+  bottom: clamp(1rem, 2.8vw, 1.8rem);
+  z-index: 120;
+  display: grid;
+  gap: 0.3rem;
+  max-width: min(15rem, calc(100vw - 2rem));
+  padding: 0.92rem 1rem;
+  border: 1px solid rgba(232, 212, 193, 0.92);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.7), transparent 18%),
+    radial-gradient(circle at 84% 20%, rgba(255, 223, 233, 0.34), transparent 20%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.96), rgba(245, 235, 222, 0.94));
+  box-shadow:
+    0 16px 30px rgba(183, 154, 132, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(4px);
+}
+
+.birthday-day-card__eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(148, 108, 116, 0.68);
+}
+
+.birthday-day-card__body {
+  font-size: clamp(0.88rem, 1.45vw, 1rem);
+  line-height: 1.45;
+  color: rgba(102, 70, 77, 0.94);
 }
 
 .gift-poem-overlay {
@@ -846,9 +896,46 @@ select {
   }
 }
 
+@keyframes gift-bird-release {
+  0% {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      translate3d(var(--gift-bird-release-x, 0vw), var(--gift-bird-release-y, 28vh), 0)
+      rotate(calc(var(--gift-bird-rotate, 0deg) - 12deg))
+      scale(calc(var(--gift-bird-scale, 1) * 0.36));
+  }
+
+  18% {
+    opacity: 0.95;
+  }
+
+  62% {
+    opacity: 0.96;
+    transform:
+      translate(-50%, -50%)
+      translate3d(
+        calc(var(--gift-bird-release-x, 0vw) * 0.28),
+        calc(var(--gift-bird-release-y, 28vh) * 0.24),
+        0
+      )
+      rotate(calc(var(--gift-bird-rotate, 0deg) + 4deg))
+      scale(calc(var(--gift-bird-scale, 1) * 1.02));
+  }
+
+  100% {
+    opacity: 0.88;
+    transform:
+      translate(-50%, -50%)
+      translate3d(0, 0, 0)
+      rotate(var(--gift-bird-rotate, 0deg))
+      scale(var(--gift-bird-scale, 1));
+  }
+}
+
 @keyframes gift-bird-flight {
   0% {
-    opacity: 0.18;
+    opacity: 0.82;
     transform:
       translate(-50%, -50%)
       translate3d(0, 0, 0)
@@ -856,17 +943,13 @@ select {
       scale(var(--gift-bird-scale, 1));
   }
 
-  15% {
-    opacity: 0.86;
-  }
-
   50% {
-    opacity: 0.94;
+    opacity: 0.96;
     transform:
       translate(-50%, -50%)
       translate3d(
         calc(var(--gift-bird-flight-x, 3vw) * 0.55),
-        calc(var(--gift-bird-flight-y, -2vh) * 0.58),
+        calc(var(--gift-bird-flight-y, -0.8vh) * 0.58),
         0
       )
       rotate(calc(var(--gift-bird-rotate, 0deg) + 3deg))
@@ -874,10 +957,10 @@ select {
   }
 
   100% {
-    opacity: 0.78;
+    opacity: 0.84;
     transform:
       translate(-50%, -50%)
-      translate3d(var(--gift-bird-flight-x, 3vw), var(--gift-bird-flight-y, -2vh), 0)
+      translate3d(var(--gift-bird-flight-x, 3vw), var(--gift-bird-flight-y, -0.8vh), 0)
       rotate(calc(var(--gift-bird-rotate, 0deg) - 3deg))
       scale(var(--gift-bird-scale, 1));
   }
@@ -890,7 +973,7 @@ select {
   }
 
   50% {
-    transform: translate3d(0.18rem, -0.52rem, 0);
+    transform: translate3d(0.14rem, -0.34rem, 0);
   }
 }
 
@@ -2553,6 +2636,13 @@ select {
 
   .gift-bird-layer {
     inset: -12% -24% 26% -22%;
+  }
+
+  .birthday-day-card {
+    left: 0.7rem;
+    bottom: 0.7rem;
+    max-width: min(12rem, calc(100vw - 1.4rem));
+    padding: 0.78rem 0.84rem;
   }
 
   .gift-poem-overlay {

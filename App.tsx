@@ -121,29 +121,21 @@ type GiftBirdPalette = {
 
 type GiftBurstBird = {
   id: string;
-  size: number;
-  rotate: number;
-  flightX: number;
-  flightY: number;
-  flightDuration: number;
-  delay: number;
-  scale: number;
-  palette: GiftBirdPalette;
-};
-
-type GiftAmbientBird = {
-  id: string;
   left: number;
   top: number;
   size: number;
   rotate: number;
-  scale: number;
-  flightX: number;
-  flightY: number;
+  releaseX: string;
+  releaseY: string;
+  releaseDuration: number;
+  releaseDelay: number;
+  driftX: number;
+  driftY: number;
   flightDuration: number;
   driftDuration: number;
   wingDuration: number;
   delay: number;
+  scale: number;
   palette: GiftBirdPalette;
 };
 
@@ -376,9 +368,9 @@ const romanticNote: NoteCopy = {
 };
 
 const backgroundTrack: MusicTrack = {
-  title: "J'y suis jamais alle",
-  artist: "Mercuzio Pianist",
-  src: new URL("./J'y suis jamais allé (Theme from Amelie) - Mercuzio Pianist.mp3", import.meta.url).href,
+  title: "Dünyanın En Güzel Kızı",
+  artist: "Mavi Gri",
+  src: new URL("./Mavi Gri - Dünyanın En Güzel Kızı (Lyrics Video) - Mavi Gri.mp3", import.meta.url).href,
 };
 
 const giftPoemLines = [
@@ -420,6 +412,7 @@ const giftPoemLines = [
 const giftPoemPreviewLineCount = 7;
 const giftPoemPreview = giftPoemLines.slice(0, giftPoemPreviewLineCount).join("\n");
 const giftPoemFull = giftPoemLines.join("\n");
+const birthdayDayOneCardMessage = "Yeni yaşının birinci günü kutlu olsun.";
 
 const secretFlowerId = "f-2";
 const secretFlowerNotes: Record<string, SecretNoteCopy> = {
@@ -1459,7 +1452,18 @@ const giftBirdPalettes: GiftBirdPalette[] = [
 ];
 
 function buildGiftBurstBirds(): GiftBurstBird[] {
-  return [];
+  return [
+    { id: "gift-bird-1", left: 14, top: 9, size: 44, rotate: -11, releaseX: "44vw", releaseY: "34vh", releaseDuration: 2.02, releaseDelay: 0.06, driftX: 2.8, driftY: -0.6, flightDuration: 8.8, driftDuration: 4.4, wingDuration: 1.5, delay: -1.6, scale: 0.94, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-2", left: 22, top: 15, size: 42, rotate: 7, releaseX: "36vw", releaseY: "30vh", releaseDuration: 2.12, releaseDelay: 0.16, driftX: -2.6, driftY: -0.5, flightDuration: 9.4, driftDuration: 4.8, wingDuration: 1.56, delay: -2.4, scale: 0.92, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-3", left: 30, top: 10, size: 43, rotate: -8, releaseX: "30vw", releaseY: "33vh", releaseDuration: 2.18, releaseDelay: 0.24, driftX: 3.1, driftY: -0.7, flightDuration: 9.1, driftDuration: 4.5, wingDuration: 1.48, delay: -0.8, scale: 0.95, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-4", left: 38, top: 16, size: 41, rotate: 6, releaseX: "22vw", releaseY: "29vh", releaseDuration: 2.24, releaseDelay: 0.34, driftX: -2.9, driftY: -0.45, flightDuration: 9.8, driftDuration: 4.9, wingDuration: 1.54, delay: -3.4, scale: 0.92, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-5", left: 46, top: 11, size: 45, rotate: -5, releaseX: "15vw", releaseY: "32vh", releaseDuration: 2.28, releaseDelay: 0.46, driftX: 2.7, driftY: -0.55, flightDuration: 8.9, driftDuration: 4.3, wingDuration: 1.46, delay: -1.2, scale: 0.96, palette: giftBirdPalettes[4] },
+    { id: "gift-bird-6", left: 54, top: 16, size: 44, rotate: 5, releaseX: "7vw", releaseY: "28vh", releaseDuration: 2.32, releaseDelay: 0.58, driftX: -2.8, driftY: -0.45, flightDuration: 9.6, driftDuration: 4.7, wingDuration: 1.6, delay: -2.7, scale: 0.95, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-7", left: 62, top: 10, size: 42, rotate: -7, releaseX: "0vw", releaseY: "31vh", releaseDuration: 2.36, releaseDelay: 0.68, driftX: 2.9, driftY: -0.65, flightDuration: 9.2, driftDuration: 4.4, wingDuration: 1.5, delay: -0.9, scale: 0.93, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-8", left: 70, top: 15, size: 44, rotate: 8, releaseX: "-8vw", releaseY: "27vh", releaseDuration: 2.4, releaseDelay: 0.8, driftX: -3.2, driftY: -0.5, flightDuration: 9.9, driftDuration: 4.8, wingDuration: 1.58, delay: -3.1, scale: 0.96, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-9", left: 78, top: 10, size: 43, rotate: -6, releaseX: "-16vw", releaseY: "30vh", releaseDuration: 2.46, releaseDelay: 0.9, driftX: 2.6, driftY: -0.55, flightDuration: 8.8, driftDuration: 4.2, wingDuration: 1.48, delay: -1.8, scale: 0.94, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-10", left: 86, top: 15, size: 45, rotate: 7, releaseX: "-24vw", releaseY: "26vh", releaseDuration: 2.52, releaseDelay: 1, driftX: -2.7, driftY: -0.48, flightDuration: 9.5, driftDuration: 4.6, wingDuration: 1.56, delay: -4.2, scale: 0.97, palette: giftBirdPalettes[4] },
+  ];
 }
 
 function buildGiftAmbientButterflies(): Butterfly[] {
@@ -1470,21 +1474,6 @@ function buildGiftAmbientButterflies(): Butterfly[] {
     { id: "gift-ambient-butterfly-4", left: 63, top: 24, size: 28, rotate: 9, variant: "teal-bloom", flightX: -4.5, flightY: -4.1, flightDuration: 10.8, driftDuration: 4.1, flapDuration: 0.88, delay: -3.2, scale: 0.86 },
     { id: "gift-ambient-butterfly-5", left: 48, top: 31, size: 24, rotate: 4, variant: "peach-soft", flightX: 3.2, flightY: -2.8, flightDuration: 9.4, driftDuration: 3.2, flapDuration: 0.8, delay: -1.1, scale: 0.76 },
     { id: "gift-ambient-butterfly-6", left: 59, top: 19, size: 25, rotate: -7, variant: "coral-glow", flightX: -3.8, flightY: -3.4, flightDuration: 10.1, driftDuration: 3.7, flapDuration: 0.84, delay: -2.8, scale: 0.8 },
-  ];
-}
-
-function buildGiftAmbientBirds(): GiftAmbientBird[] {
-  return [
-    { id: "gift-ambient-bird-1", left: 24, top: 16, size: 46, rotate: -10, scale: 0.98, flightX: 3.4, flightY: -2.3, flightDuration: 11.4, driftDuration: 4.1, wingDuration: 1.42, delay: -1.8, palette: giftBirdPalettes[0] },
-    { id: "gift-ambient-bird-2", left: 34, top: 10, size: 44, rotate: 7, scale: 0.94, flightX: -3.2, flightY: -1.8, flightDuration: 12.2, driftDuration: 4.4, wingDuration: 1.56, delay: -2.5, palette: giftBirdPalettes[1] },
-    { id: "gift-ambient-bird-3", left: 47, top: 8, size: 42, rotate: -4, scale: 0.96, flightX: 3.8, flightY: -2.1, flightDuration: 11.8, driftDuration: 4.2, wingDuration: 1.48, delay: -3.2, palette: giftBirdPalettes[2] },
-    { id: "gift-ambient-bird-4", left: 60, top: 11, size: 45, rotate: 6, scale: 0.98, flightX: -4.1, flightY: -1.9, flightDuration: 12.8, driftDuration: 4.6, wingDuration: 1.54, delay: -4.1, palette: giftBirdPalettes[3] },
-    { id: "gift-ambient-bird-5", left: 73, top: 16, size: 44, rotate: -7, scale: 0.96, flightX: 3.2, flightY: -2.2, flightDuration: 11.6, driftDuration: 4.1, wingDuration: 1.44, delay: -1.2, palette: giftBirdPalettes[4] },
-    { id: "gift-ambient-bird-6", left: 20, top: 27, size: 48, rotate: 5, scale: 1, flightX: -3.4, flightY: -1.6, flightDuration: 12.5, driftDuration: 4.7, wingDuration: 1.6, delay: -2.9, palette: giftBirdPalettes[1] },
-    { id: "gift-ambient-bird-7", left: 36, top: 30, size: 43, rotate: -6, scale: 0.94, flightX: 4, flightY: -1.7, flightDuration: 11.2, driftDuration: 3.9, wingDuration: 1.38, delay: -0.9, palette: giftBirdPalettes[2] },
-    { id: "gift-ambient-bird-8", left: 52, top: 25, size: 46, rotate: 8, scale: 1.02, flightX: -3.8, flightY: -1.8, flightDuration: 12.9, driftDuration: 4.8, wingDuration: 1.62, delay: -3.8, palette: giftBirdPalettes[0] },
-    { id: "gift-ambient-bird-9", left: 66, top: 29, size: 44, rotate: -5, scale: 0.98, flightX: 3.6, flightY: -1.5, flightDuration: 11.9, driftDuration: 4.2, wingDuration: 1.46, delay: -2.1, palette: giftBirdPalettes[3] },
-    { id: "gift-ambient-bird-10", left: 80, top: 25, size: 47, rotate: 4, scale: 1, flightX: -3.1, flightY: -1.7, flightDuration: 12.4, driftDuration: 4.5, wingDuration: 1.58, delay: -4.5, palette: giftBirdPalettes[4] },
   ];
 }
 
@@ -1572,14 +1561,12 @@ function GiftBox({
   burstPhase,
   reducedMotion,
   burstButterflies,
-  burstBirds,
   onOpen,
 }: {
   opened: boolean;
   burstPhase: GiftBurstPhase;
   reducedMotion: boolean;
   burstButterflies: GiftBurstButterfly[];
-  burstBirds: GiftBurstBird[];
   onOpen: (event: ReactMouseEvent<HTMLButtonElement>) => void;
 }) {
   return (
@@ -1593,7 +1580,7 @@ function GiftBox({
     >
       <span className="gift-box__shadow" aria-hidden="true" />
       <span className="gift-box__glow" aria-hidden="true" />
-      {!reducedMotion && burstPhase !== "idle" && burstPhase !== "poem" ? (
+      {!reducedMotion && burstPhase === "burst" ? (
         <span className="gift-box__burst" aria-hidden="true">
           {burstButterflies.map((butterfly) => {
             const butterflyStyle = getButterflyVariantStyle(butterfly.variant);
@@ -2209,6 +2196,15 @@ function MiniSparkleIcon({ className }: { className?: string }) {
   );
 }
 
+function BirthdayDayOneCard() {
+  return (
+    <div className="birthday-day-card" aria-label={birthdayDayOneCardMessage}>
+      <span className="birthday-day-card__eyebrow">for ceren</span>
+      <strong className="birthday-day-card__body">{birthdayDayOneCardMessage}</strong>
+    </div>
+  );
+}
+
 function SecretFlowerNote({
   noteId,
   flower,
@@ -2652,9 +2648,8 @@ export default function App() {
   const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
   const butterflies = useMemo(() => buildButterflies(performanceProfile), [performanceProfile]);
   const giftBurstButterflies = useMemo(() => buildGiftBurstButterflies(), []);
-  const giftBurstBirds = useMemo(() => buildGiftBurstBirds(), []);
   const giftAmbientButterflies = useMemo(() => buildGiftAmbientButterflies(), []);
-  const giftAmbientBirds = useMemo(() => buildGiftAmbientBirds(), []);
+  const giftBirds = useMemo(() => buildGiftBurstBirds(), []);
   const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
   const bouquetGlints = useMemo(() => buildBouquetGlints(), []);
   const openingFlowerConfigs = useMemo(
@@ -2689,7 +2684,10 @@ export default function App() {
           : "tap to arrange";
   const showButterflies =
     phase === "arranging" || phase === "clustered" || phase === "bouquet";
-  const giftCreaturesReleased = giftBoxOpened && (reducedMotion || giftBurstPhase !== "idle");
+  const giftCreaturesReleased =
+    giftBoxOpened && (reducedMotion || giftBurstPhase === "burst" || giftBurstPhase === "poem");
+  const showGiftBirds =
+    phase === "bouquet" && giftBoxOpened && (reducedMotion || giftBurstPhase === "burst" || giftBurstPhase === "poem");
   const visibleButterflies = useMemo(
     () => (giftCreaturesReleased ? [...butterflies, ...giftAmbientButterflies] : butterflies),
     [butterflies, giftAmbientButterflies, giftCreaturesReleased],
@@ -2800,12 +2798,12 @@ export default function App() {
     if (giftBurstPhase === "opening") {
       timerId = setTimeout(() => {
         setGiftBurstPhase("burst");
-      }, 320);
+      }, 520);
     } else if (giftBurstPhase === "burst") {
       timerId = setTimeout(() => {
         setGiftBurstPhase("poem");
         setPoemVisible(true);
-      }, 1020);
+      }, 2980);
     } else if (giftBurstPhase === "poem") {
       setPoemVisible(true);
     }
@@ -4387,6 +4385,7 @@ export default function App() {
       <div className="bouquet-scene" ref={bouquetRef}>
         <div className="bouquet-halo" />
         <div className="bouquet-mist" />
+        {phase === "bouquet" ? <BirthdayDayOneCard /> : null}
         <div className="bouquet-glints" aria-hidden="true">
           {bouquetGlints.map((glint) => (
             <span
@@ -4404,12 +4403,13 @@ export default function App() {
             />
           ))}
         </div>
-        {phase === "bouquet" && giftCreaturesReleased ? (
+        {showGiftBirds ? (
           <div className="gift-bird-layer" aria-hidden="true">
-            {giftAmbientBirds.map((bird) => (
+            {giftBirds.map((bird) => (
               <span
                 key={bird.id}
                 className="gift-bird gift-bird--ambient"
+                data-stage={reducedMotion || giftBurstPhase === "poem" ? "ambient" : "release"}
                 style={
                   {
                     left: `${bird.left}%`,
@@ -4418,8 +4418,12 @@ export default function App() {
                     height: `${Math.round(bird.size * 0.78)}px`,
                     "--gift-bird-rotate": `${bird.rotate}deg`,
                     "--gift-bird-scale": bird.scale,
-                    "--gift-bird-flight-x": `${bird.flightX}vw`,
-                    "--gift-bird-flight-y": `${bird.flightY}vh`,
+                    "--gift-bird-release-x": bird.releaseX,
+                    "--gift-bird-release-y": bird.releaseY,
+                    "--gift-bird-release-duration": `${bird.releaseDuration}s`,
+                    "--gift-bird-release-delay": `${bird.releaseDelay}s`,
+                    "--gift-bird-flight-x": `${bird.driftX}vw`,
+                    "--gift-bird-flight-y": `${bird.driftY}vh`,
                     "--gift-bird-flight-duration": `${bird.flightDuration}s`,
                     "--gift-bird-drift-duration": `${bird.driftDuration}s`,
                     "--gift-bird-wing-duration": `${bird.wingDuration}s`,
@@ -4428,7 +4432,9 @@ export default function App() {
                   } as CSSProperties
                 }
               >
-                <span className="gift-bird__float">{renderGiftBird(bird)}</span>
+                <span className="gift-bird__motion">
+                  <span className="gift-bird__float">{renderGiftBird(bird)}</span>
+                </span>
               </span>
             ))}
           </div>
@@ -4468,7 +4474,6 @@ export default function App() {
             burstPhase={giftBurstPhase}
             reducedMotion={reducedMotion}
             burstButterflies={giftBurstButterflies}
-            burstBirds={giftBurstBirds}
             onOpen={openGiftBox}
           />
         ) : null}
