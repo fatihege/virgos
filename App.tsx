@@ -412,7 +412,7 @@ const giftPoemLines = [
 const giftPoemPreviewLineCount = 7;
 const giftPoemPreview = giftPoemLines.slice(0, giftPoemPreviewLineCount).join("\n");
 const giftPoemFull = giftPoemLines.join("\n");
-const birthdayDayOneCardMessage = "Yeni yaşının birinci günü kutlu olsun.";
+const birthdayDayOneCardMessage = "Happy second day of your new year.";
 
 const secretFlowerId = "f-2";
 const secretFlowerNotes: Record<string, SecretNoteCopy> = {
