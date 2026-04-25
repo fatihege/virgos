@@ -368,9 +368,9 @@ const romanticNote: NoteCopy = {
 };
 
 const backgroundTrack: MusicTrack = {
-  title: "Dünyanın En Güzel Kızı",
-  artist: "Mavi Gri",
-  src: new URL("./Mavi Gri - Dünyanın En Güzel Kızı (Lyrics Video) - Mavi Gri.mp3", import.meta.url).href,
+  title: "Autumn Leaves",
+  artist: "Santec Music Orchestra",
+  src: new URL("./Autumn Leaves - Santec Music Orchestra.mp3", import.meta.url).href,
 };
 
 const giftPoemLines = [
