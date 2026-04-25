@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
 import gsap from "gsap";
@@ -19,6 +20,7 @@ import {
   shouldShowOpeningStem,
   type FlowerConfig,
 } from "./flowers";
+import flowerImage from "./flower.png";
 
 gsap.registerPlugin(useGSAP);
 
@@ -137,6 +139,34 @@ type GiftBurstBird = {
   delay: number;
   scale: number;
   palette: GiftBirdPalette;
+};
+
+type SecondGiftHintState = "hidden" | "searching" | "found";
+
+type PuzzlePieceState = {
+  id: string;
+  correctSlot: number;
+  x: number;
+  y: number;
+  placed: boolean;
+};
+
+type ActivePuzzleDrag = {
+  pieceId: string;
+  pointerId: number;
+  offsetX: number;
+  offsetY: number;
+  width: number;
+  height: number;
+};
+
+type SecondGiftKeyAnimationPhase = "hidden" | "reveal" | "travel";
+
+type SecondGiftKeyAnimationGeometry = {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
 };
 
 type NoteCopy = {
@@ -413,6 +443,25 @@ const giftPoemPreviewLineCount = 7;
 const giftPoemPreview = giftPoemLines.slice(0, giftPoemPreviewLineCount).join("\n");
 const giftPoemFull = giftPoemLines.join("\n");
 const birthdayDayOneCardMessage = "Happy second day of your new year.";
+const secondGiftHintMessage = "Kucuk anahtar kuslardan birinde sakli.";
+const secondGiftFoundMessage = "Anahtari buldun. Kutu simdi acilabilir.";
+const secondGiftPuzzleGridSize = 3;
+const secondGiftPuzzleTotalPieces = secondGiftPuzzleGridSize * secondGiftPuzzleGridSize;
+
+const secondGiftScatterSlots = [
+  { x: 3, y: 10 },
+  { x: 16, y: 3 },
+  { x: 76, y: 4 },
+  { x: 88, y: 16 },
+  { x: 4, y: 38 },
+  { x: 84, y: 40 },
+  { x: 11, y: 71 },
+  { x: 30, y: 79 },
+  { x: 68, y: 80 },
+  { x: 84, y: 67 },
+  { x: 48, y: 2 },
+  { x: 58, y: 72 },
+] as const;
 
 const secretFlowerId = "f-2";
 const secretFlowerNotes: Record<string, SecretNoteCopy> = {
@@ -865,7 +914,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-1",
       left: 8,
-      top: 11,
+      top: 15,
       size: 34,
       rotate: -8,
       variant: "sky-swallowtail",
@@ -880,7 +929,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-2",
       left: 21,
-      top: 20,
+      top: 29,
       size: 28,
       rotate: 9,
       variant: "coral-glow",
@@ -895,7 +944,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-3",
       left: 36,
-      top: 10,
+      top: 18,
       size: 30,
       rotate: -6,
       variant: "pink-ribbon",
@@ -910,7 +959,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-4",
       left: 51,
-      top: 15,
+      top: 34,
       size: 26,
       rotate: 8,
       variant: "orchid-garden",
@@ -925,7 +974,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-5",
       left: 72,
-      top: 12,
+      top: 22,
       size: 32,
       rotate: -10,
       variant: "ruby-drift",
@@ -940,7 +989,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-6",
       left: 89,
-      top: 21,
+      top: 31,
       size: 24,
       rotate: 11,
       variant: "lilac-mist",
@@ -955,7 +1004,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-7",
       left: 9,
-      top: 37,
+      top: 45,
       size: 29,
       rotate: -7,
       variant: "violet-velvet",
@@ -970,7 +1019,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-8",
       left: 18,
-      top: 55,
+      top: 60,
       size: 23,
       rotate: 10,
       variant: "peach-soft",
@@ -985,7 +1034,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-9",
       left: 31,
-      top: 66,
+      top: 72,
       size: 27,
       rotate: -5,
       variant: "teal-bloom",
@@ -1000,7 +1049,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-10",
       left: 44,
-      top: 8,
+      top: 25,
       size: 21,
       rotate: 7,
       variant: "pink-ribbon",
@@ -1015,7 +1064,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-11",
       left: 62,
-      top: 30,
+      top: 48,
       size: 25,
       rotate: -9,
       variant: "coral-glow",
@@ -1030,7 +1079,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-12",
       left: 78,
-      top: 46,
+      top: 56,
       size: 31,
       rotate: 8,
       variant: "lilac-mist",
@@ -1045,7 +1094,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-13",
       left: 91,
-      top: 63,
+      top: 69,
       size: 22,
       rotate: -11,
       variant: "ruby-drift",
@@ -1060,7 +1109,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-14",
       left: 73,
-      top: 78,
+      top: 82,
       size: 26,
       rotate: 9,
       variant: "sky-swallowtail",
@@ -1075,7 +1124,7 @@ function buildButterflies(profile: PerformanceProfile): Butterfly[] {
     {
       id: "butterfly-15",
       left: 53,
-      top: 74,
+      top: 79,
       size: 20,
       rotate: -6,
       variant: "peach-soft",
@@ -1453,27 +1502,27 @@ const giftBirdPalettes: GiftBirdPalette[] = [
 
 function buildGiftBurstBirds(): GiftBurstBird[] {
   return [
-    { id: "gift-bird-1", left: 14, top: 9, size: 44, rotate: -11, releaseX: "44vw", releaseY: "34vh", releaseDuration: 2.02, releaseDelay: 0.06, driftX: 2.8, driftY: -0.6, flightDuration: 8.8, driftDuration: 4.4, wingDuration: 1.5, delay: -1.6, scale: 0.94, palette: giftBirdPalettes[0] },
-    { id: "gift-bird-2", left: 22, top: 15, size: 42, rotate: 7, releaseX: "36vw", releaseY: "30vh", releaseDuration: 2.12, releaseDelay: 0.16, driftX: -2.6, driftY: -0.5, flightDuration: 9.4, driftDuration: 4.8, wingDuration: 1.56, delay: -2.4, scale: 0.92, palette: giftBirdPalettes[1] },
-    { id: "gift-bird-3", left: 30, top: 10, size: 43, rotate: -8, releaseX: "30vw", releaseY: "33vh", releaseDuration: 2.18, releaseDelay: 0.24, driftX: 3.1, driftY: -0.7, flightDuration: 9.1, driftDuration: 4.5, wingDuration: 1.48, delay: -0.8, scale: 0.95, palette: giftBirdPalettes[2] },
-    { id: "gift-bird-4", left: 38, top: 16, size: 41, rotate: 6, releaseX: "22vw", releaseY: "29vh", releaseDuration: 2.24, releaseDelay: 0.34, driftX: -2.9, driftY: -0.45, flightDuration: 9.8, driftDuration: 4.9, wingDuration: 1.54, delay: -3.4, scale: 0.92, palette: giftBirdPalettes[3] },
-    { id: "gift-bird-5", left: 46, top: 11, size: 45, rotate: -5, releaseX: "15vw", releaseY: "32vh", releaseDuration: 2.28, releaseDelay: 0.46, driftX: 2.7, driftY: -0.55, flightDuration: 8.9, driftDuration: 4.3, wingDuration: 1.46, delay: -1.2, scale: 0.96, palette: giftBirdPalettes[4] },
-    { id: "gift-bird-6", left: 54, top: 16, size: 44, rotate: 5, releaseX: "7vw", releaseY: "28vh", releaseDuration: 2.32, releaseDelay: 0.58, driftX: -2.8, driftY: -0.45, flightDuration: 9.6, driftDuration: 4.7, wingDuration: 1.6, delay: -2.7, scale: 0.95, palette: giftBirdPalettes[1] },
-    { id: "gift-bird-7", left: 62, top: 10, size: 42, rotate: -7, releaseX: "0vw", releaseY: "31vh", releaseDuration: 2.36, releaseDelay: 0.68, driftX: 2.9, driftY: -0.65, flightDuration: 9.2, driftDuration: 4.4, wingDuration: 1.5, delay: -0.9, scale: 0.93, palette: giftBirdPalettes[2] },
-    { id: "gift-bird-8", left: 70, top: 15, size: 44, rotate: 8, releaseX: "-8vw", releaseY: "27vh", releaseDuration: 2.4, releaseDelay: 0.8, driftX: -3.2, driftY: -0.5, flightDuration: 9.9, driftDuration: 4.8, wingDuration: 1.58, delay: -3.1, scale: 0.96, palette: giftBirdPalettes[0] },
-    { id: "gift-bird-9", left: 78, top: 10, size: 43, rotate: -6, releaseX: "-16vw", releaseY: "30vh", releaseDuration: 2.46, releaseDelay: 0.9, driftX: 2.6, driftY: -0.55, flightDuration: 8.8, driftDuration: 4.2, wingDuration: 1.48, delay: -1.8, scale: 0.94, palette: giftBirdPalettes[3] },
-    { id: "gift-bird-10", left: 86, top: 15, size: 45, rotate: 7, releaseX: "-24vw", releaseY: "26vh", releaseDuration: 2.52, releaseDelay: 1, driftX: -2.7, driftY: -0.48, flightDuration: 9.5, driftDuration: 4.6, wingDuration: 1.56, delay: -4.2, scale: 0.97, palette: giftBirdPalettes[4] },
+    { id: "gift-bird-1", left: 14, top: 14, size: 44, rotate: -11, releaseX: "44vw", releaseY: "36vh", releaseDuration: 4.8, releaseDelay: 0.08, driftX: 1.8, driftY: -0.28, flightDuration: 30.4, driftDuration: 7.2, wingDuration: 1.56, delay: -1.6, scale: 0.94, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-2", left: 22, top: 20, size: 42, rotate: 7, releaseX: "36vw", releaseY: "32vh", releaseDuration: 5.02, releaseDelay: 0.24, driftX: -1.7, driftY: -0.24, flightDuration: 31.2, driftDuration: 7.8, wingDuration: 1.64, delay: -2.4, scale: 0.92, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-3", left: 30, top: 15, size: 43, rotate: -8, releaseX: "30vw", releaseY: "35vh", releaseDuration: 5.18, releaseDelay: 0.42, driftX: 1.95, driftY: -0.3, flightDuration: 32, driftDuration: 7.4, wingDuration: 1.54, delay: -0.8, scale: 0.95, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-4", left: 38, top: 21, size: 41, rotate: 6, releaseX: "22vw", releaseY: "31vh", releaseDuration: 5.32, releaseDelay: 0.58, driftX: -1.85, driftY: -0.22, flightDuration: 31.6, driftDuration: 7.9, wingDuration: 1.62, delay: -3.4, scale: 0.92, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-5", left: 46, top: 16, size: 45, rotate: -5, releaseX: "15vw", releaseY: "34vh", releaseDuration: 5.46, releaseDelay: 0.74, driftX: 1.7, driftY: -0.26, flightDuration: 30.9, driftDuration: 7.1, wingDuration: 1.5, delay: -1.2, scale: 0.96, palette: giftBirdPalettes[4] },
+    { id: "gift-bird-6", left: 54, top: 21, size: 44, rotate: 5, releaseX: "7vw", releaseY: "30vh", releaseDuration: 5.6, releaseDelay: 0.9, driftX: -1.8, driftY: -0.2, flightDuration: 32.4, driftDuration: 8, wingDuration: 1.68, delay: -2.7, scale: 0.95, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-7", left: 62, top: 15, size: 42, rotate: -7, releaseX: "0vw", releaseY: "33vh", releaseDuration: 5.72, releaseDelay: 1.06, driftX: 1.9, driftY: -0.28, flightDuration: 31.1, driftDuration: 7.3, wingDuration: 1.56, delay: -0.9, scale: 0.93, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-8", left: 70, top: 20, size: 44, rotate: 8, releaseX: "-8vw", releaseY: "29vh", releaseDuration: 5.86, releaseDelay: 1.22, driftX: -2.05, driftY: -0.22, flightDuration: 32.8, driftDuration: 7.9, wingDuration: 1.66, delay: -3.1, scale: 0.96, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-9", left: 78, top: 15, size: 43, rotate: -6, releaseX: "-16vw", releaseY: "32vh", releaseDuration: 6.02, releaseDelay: 1.38, driftX: 1.75, driftY: -0.24, flightDuration: 30.7, driftDuration: 7.2, wingDuration: 1.54, delay: -1.8, scale: 0.94, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-10", left: 86, top: 20, size: 45, rotate: 7, releaseX: "-24vw", releaseY: "28vh", releaseDuration: 6.18, releaseDelay: 1.54, driftX: -1.9, driftY: -0.2, flightDuration: 31.9, driftDuration: 7.7, wingDuration: 1.62, delay: -4.2, scale: 0.97, palette: giftBirdPalettes[4] },
   ];
 }
 
 function buildGiftAmbientButterflies(): Butterfly[] {
   return [
-    { id: "gift-ambient-butterfly-1", left: 37, top: 18, size: 27, rotate: -8, variant: "pink-ribbon", flightX: 4.2, flightY: -3.8, flightDuration: 10.4, driftDuration: 3.8, flapDuration: 0.88, delay: -1.6, scale: 0.84 },
-    { id: "gift-ambient-butterfly-2", left: 44, top: 11, size: 30, rotate: 6, variant: "sky-swallowtail", flightX: -3.6, flightY: -4.8, flightDuration: 11.2, driftDuration: 4.2, flapDuration: 0.92, delay: -2.4, scale: 0.9 },
-    { id: "gift-ambient-butterfly-3", left: 56, top: 15, size: 26, rotate: -10, variant: "violet-velvet", flightX: 3.8, flightY: -3.2, flightDuration: 9.8, driftDuration: 3.5, flapDuration: 0.82, delay: -0.8, scale: 0.82 },
-    { id: "gift-ambient-butterfly-4", left: 63, top: 24, size: 28, rotate: 9, variant: "teal-bloom", flightX: -4.5, flightY: -4.1, flightDuration: 10.8, driftDuration: 4.1, flapDuration: 0.88, delay: -3.2, scale: 0.86 },
-    { id: "gift-ambient-butterfly-5", left: 48, top: 31, size: 24, rotate: 4, variant: "peach-soft", flightX: 3.2, flightY: -2.8, flightDuration: 9.4, driftDuration: 3.2, flapDuration: 0.8, delay: -1.1, scale: 0.76 },
-    { id: "gift-ambient-butterfly-6", left: 59, top: 19, size: 25, rotate: -7, variant: "coral-glow", flightX: -3.8, flightY: -3.4, flightDuration: 10.1, driftDuration: 3.7, flapDuration: 0.84, delay: -2.8, scale: 0.8 },
+    { id: "gift-ambient-butterfly-1", left: 34, top: 28, size: 27, rotate: -8, variant: "pink-ribbon", flightX: 4.2, flightY: -3.8, flightDuration: 10.4, driftDuration: 3.8, flapDuration: 0.88, delay: -1.6, scale: 0.84 },
+    { id: "gift-ambient-butterfly-2", left: 46, top: 21, size: 30, rotate: 6, variant: "sky-swallowtail", flightX: -3.6, flightY: -4.8, flightDuration: 11.2, driftDuration: 4.2, flapDuration: 0.92, delay: -2.4, scale: 0.9 },
+    { id: "gift-ambient-butterfly-3", left: 58, top: 32, size: 26, rotate: -10, variant: "violet-velvet", flightX: 3.8, flightY: -3.2, flightDuration: 9.8, driftDuration: 3.5, flapDuration: 0.82, delay: -0.8, scale: 0.82 },
+    { id: "gift-ambient-butterfly-4", left: 68, top: 44, size: 28, rotate: 9, variant: "teal-bloom", flightX: -4.5, flightY: -4.1, flightDuration: 10.8, driftDuration: 4.1, flapDuration: 0.88, delay: -3.2, scale: 0.86 },
+    { id: "gift-ambient-butterfly-5", left: 50, top: 56, size: 24, rotate: 4, variant: "peach-soft", flightX: 3.2, flightY: -2.8, flightDuration: 9.4, driftDuration: 3.2, flapDuration: 0.8, delay: -1.1, scale: 0.76 },
+    { id: "gift-ambient-butterfly-6", left: 61, top: 36, size: 25, rotate: -7, variant: "coral-glow", flightX: -3.8, flightY: -3.4, flightDuration: 10.1, driftDuration: 3.7, flapDuration: 0.84, delay: -2.8, scale: 0.8 },
   ];
 }
 
@@ -1562,25 +1611,41 @@ function GiftBox({
   reducedMotion,
   burstButterflies,
   onOpen,
+  variant = "primary",
+  locked = false,
+  disabled = false,
+  labelClosed = "Open the gift box",
+  labelOpened = "Open the poem",
+  showBurst = true,
+  lockRef,
 }: {
   opened: boolean;
   burstPhase: GiftBurstPhase;
   reducedMotion: boolean;
   burstButterflies: GiftBurstButterfly[];
   onOpen: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+  variant?: "primary" | "second";
+  locked?: boolean;
+  disabled?: boolean;
+  labelClosed?: string;
+  labelOpened?: string;
+  showBurst?: boolean;
+  lockRef?: RefObject<HTMLSpanElement>;
 }) {
   return (
     <button
       type="button"
-      className="gift-box"
+      className={`gift-box gift-box--${variant}`}
       data-open={opened}
       data-phase={burstPhase}
-      aria-label={opened ? "Open the poem" : "Open the gift box"}
+      data-locked={locked}
+      aria-label={opened ? labelOpened : labelClosed}
       onClick={onOpen}
+      disabled={disabled}
     >
       <span className="gift-box__shadow" aria-hidden="true" />
       <span className="gift-box__glow" aria-hidden="true" />
-      {!reducedMotion && burstPhase === "burst" ? (
+      {!reducedMotion && showBurst && burstPhase === "burst" ? (
         <span className="gift-box__burst" aria-hidden="true">
           {burstButterflies.map((butterfly) => {
             const butterflyStyle = getButterflyVariantStyle(butterfly.variant);
@@ -1631,6 +1696,11 @@ function GiftBox({
           <span className="gift-box__spark gift-box__spark--one" />
           <span className="gift-box__spark gift-box__spark--two" />
           <span className="gift-box__spark gift-box__spark--three" />
+        </span>
+      ) : null}
+      {locked ? (
+        <span className="gift-box__lock" aria-hidden="true" ref={lockRef}>
+          <LockIcon className="gift-box__lock-icon" />
         </span>
       ) : null}
       <svg className="gift-box__illustration" viewBox="0 0 160 160" role="presentation" aria-hidden="true">
@@ -1715,6 +1785,31 @@ function GiftPoemOverlay({
       </div>
     </div>
   );
+}
+
+function shuffleArray<T>(items: readonly T[]) {
+  const next = [...items];
+
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const current = next[index];
+    next[index] = next[swapIndex];
+    next[swapIndex] = current;
+  }
+
+  return next;
+}
+
+function buildSecondGiftPuzzlePieces(): PuzzlePieceState[] {
+  const shuffledSlots = shuffleArray(secondGiftScatterSlots).slice(0, secondGiftPuzzleTotalPieces);
+
+  return Array.from({ length: secondGiftPuzzleTotalPieces }, (_unused, index) => ({
+    id: `second-gift-piece-${index + 1}`,
+    correctSlot: index,
+    x: shuffledSlots[index].x,
+    y: shuffledSlots[index].y,
+    placed: false,
+  }));
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -2196,11 +2291,219 @@ function MiniSparkleIcon({ className }: { className?: string }) {
   );
 }
 
+function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 28 28" className={className} aria-hidden="true">
+      <rect x="6.5" y="12" width="15" height="11" rx="3.6" fill="currentColor" />
+      <path
+        d="M10 12 V9.7 C10 7.1 11.8 5 14 5 C16.2 5 18 7.1 18 9.7 V12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+      <circle cx="14" cy="17" r="1.6" fill="rgba(255,255,255,0.86)" />
+    </svg>
+  );
+}
+
+function KeyIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 36 24" className={className} aria-hidden="true">
+      <circle cx="8" cy="12" r="5.2" fill="none" stroke="currentColor" strokeWidth="3.2" />
+      <path d="M13.6 12 H28" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M22 12 V16" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M26.6 12 V15" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+      <circle cx="8" cy="12" r="1.6" fill="currentColor" />
+    </svg>
+  );
+}
+
 function BirthdayDayOneCard() {
   return (
     <div className="birthday-day-card" aria-label={birthdayDayOneCardMessage}>
       <span className="birthday-day-card__eyebrow">for ceren</span>
       <strong className="birthday-day-card__body">{birthdayDayOneCardMessage}</strong>
+    </div>
+  );
+}
+
+function SecondGiftHintCard({
+  visible,
+  hintState,
+}: {
+  visible: boolean;
+  hintState: SecondGiftHintState;
+}) {
+  if (!visible || hintState === "hidden") {
+    return null;
+  }
+
+  return (
+    <div className="second-gift-hint-card" data-state={hintState} role="status" aria-live="polite">
+      <span className="second-gift-hint-card__eyebrow">locked surprise</span>
+      <strong className="second-gift-hint-card__title">
+        {hintState === "found" ? secondGiftFoundMessage : secondGiftHintMessage}
+      </strong>
+    </div>
+  );
+}
+
+function SecondGiftKeyAnimation({
+  phase,
+  geometry,
+}: {
+  phase: SecondGiftKeyAnimationPhase;
+  geometry: SecondGiftKeyAnimationGeometry | null;
+}) {
+  if (phase === "hidden" || !geometry) {
+    return null;
+  }
+
+  const isTraveling = phase === "travel";
+
+  return (
+    <div
+      className="second-gift-key-animation"
+      data-phase={phase}
+      aria-hidden="true"
+      style={
+        {
+          left: `${isTraveling ? geometry.endX : geometry.startX}px`,
+          top: `${isTraveling ? geometry.endY : geometry.startY}px`,
+        } as CSSProperties
+      }
+    >
+      <span className="second-gift-key-animation__halo" />
+      <span className="second-gift-key-animation__icon-shell">
+        <KeyIcon className="second-gift-key-animation__icon" />
+      </span>
+    </div>
+  );
+}
+
+function SecondGiftPuzzleOverlay({
+  visible,
+  solved,
+  celebrating,
+  pieces,
+  activePieceId,
+  stageRef,
+  boardRef,
+  onPiecePointerDown,
+  onReset,
+  onClose,
+}: {
+  visible: boolean;
+  solved: boolean;
+  celebrating: boolean;
+  pieces: PuzzlePieceState[];
+  activePieceId: string | null;
+  stageRef: RefObject<HTMLDivElement>;
+  boardRef: RefObject<HTMLDivElement>;
+  onPiecePointerDown: (event: ReactPointerEvent<HTMLButtonElement>, pieceId: string) => void;
+  onReset: () => void;
+  onClose: () => void;
+}) {
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <div
+      className="second-gift-overlay"
+      role="presentation"
+      onClick={(event) => {
+        event.stopPropagation();
+        onClose();
+      }}
+    >
+      <div
+        className="second-gift-overlay__card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="second-gift-title"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <div className="second-gift-overlay__actions">
+          <button type="button" className="second-gift-overlay__reset" aria-label="Reset the puzzle" onClick={onReset}>
+            Reset
+          </button>
+          <button type="button" className="second-gift-overlay__close" aria-label="Close the puzzle" onClick={onClose}>
+            Kapat
+          </button>
+        </div>
+        <span className="second-gift-overlay__eyebrow">a locked gift turned into a tiny puzzle</span>
+        {solved ? (
+          <h2 id="second-gift-title" className="second-gift-overlay__title" data-visible="true">
+            Another bloom for Ceren
+          </h2>
+        ) : (
+          <span id="second-gift-title" className="second-gift-overlay__title-placeholder" aria-hidden="true" />
+        )}
+        <div className="second-gift-puzzle">
+          <div className="second-gift-puzzle__stage" ref={stageRef}>
+            <div
+              className="second-gift-puzzle__board"
+              data-solved={solved}
+              data-celebrating={celebrating}
+              ref={boardRef}
+            >
+              <div className="second-gift-puzzle__template" data-hidden={solved} aria-hidden="true">
+                {Array.from({ length: secondGiftPuzzleTotalPieces }, (_unused, slotIndex) => (
+                  <span key={`second-gift-slot-${slotIndex}`} className="second-gift-puzzle__slot" />
+                ))}
+              </div>
+              {solved ? (
+                <span
+                  className="second-gift-puzzle__final-image"
+                  aria-hidden="true"
+                  style={{ backgroundImage: `url("${flowerImage}")` } as CSSProperties}
+                />
+              ) : null}
+              {celebrating ? (
+                <span className="second-gift-puzzle__glow" aria-hidden="true">
+                  <MiniSparkleIcon className="second-gift-puzzle__glow-icon second-gift-puzzle__glow-icon--one" />
+                  <MiniSparkleIcon className="second-gift-puzzle__glow-icon second-gift-puzzle__glow-icon--two" />
+                  <MiniBloomIcon className="second-gift-puzzle__glow-icon second-gift-puzzle__glow-icon--three" centerFill="#fff2aa" />
+                </span>
+              ) : null}
+            </div>
+            {!solved
+              ? pieces.map((piece) => {
+              const column = piece.correctSlot % secondGiftPuzzleGridSize;
+              const row = Math.floor(piece.correctSlot / secondGiftPuzzleGridSize);
+
+              return (
+                <button
+                  key={piece.id}
+                  type="button"
+                  className="second-gift-puzzle__piece"
+                  data-placed={piece.placed}
+                  data-active={activePieceId === piece.id}
+                  data-solved={solved}
+                  onPointerDown={(event) => {
+                    onPiecePointerDown(event, piece.id);
+                  }}
+                  disabled={piece.placed}
+                  aria-label={piece.placed ? "Puzzle piece placed" : "Drag puzzle piece into place"}
+                  style={
+                    {
+                      left: `${piece.x}%`,
+                      top: `${piece.y}%`,
+                      backgroundImage: `url("${flowerImage}")`,
+                      backgroundPosition: `${column * 50}% ${row * 50}%`,
+                    } as CSSProperties
+                  }
+                />
+              );
+            })
+              : null}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2620,6 +2923,10 @@ export default function App() {
   const noteCardRef = useRef<HTMLButtonElement>(null);
   const noteGlowRef = useRef<HTMLSpanElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const secondGiftLockRef = useRef<HTMLSpanElement>(null);
+  const secondGiftPuzzleStageRef = useRef<HTMLDivElement>(null);
+  const secondGiftPuzzleBoardRef = useRef<HTMLDivElement>(null);
+  const activePuzzleDragRef = useRef<ActivePuzzleDrag | null>(null);
   const musicAutoplayArmedRef = useRef(true);
   const noteReadyRef = useRef(false);
   const noteAnimatingRef = useRef(false);
@@ -2631,6 +2938,20 @@ export default function App() {
   const [giftBurstPhase, setGiftBurstPhase] = useState<GiftBurstPhase>("idle");
   const [poemVisible, setPoemVisible] = useState(false);
   const [poemExpanded, setPoemExpanded] = useState(false);
+  const [secondGiftHintState, setSecondGiftHintState] = useState<SecondGiftHintState>("hidden");
+  const [secondGiftUnlocked, setSecondGiftUnlocked] = useState(false);
+  const [secondGiftOpened, setSecondGiftOpened] = useState(false);
+  const [secondGiftPuzzleVisible, setSecondGiftPuzzleVisible] = useState(false);
+  const [secondGiftPuzzleSolved, setSecondGiftPuzzleSolved] = useState(false);
+  const [secondGiftPuzzleCelebrating, setSecondGiftPuzzleCelebrating] = useState(false);
+  const [secondGiftKeyAnimationPhase, setSecondGiftKeyAnimationPhase] =
+    useState<SecondGiftKeyAnimationPhase>("hidden");
+  const [secondGiftKeyAnimationGeometry, setSecondGiftKeyAnimationGeometry] =
+    useState<SecondGiftKeyAnimationGeometry | null>(null);
+  const [secondGiftPuzzlePieces, setSecondGiftPuzzlePieces] = useState<PuzzlePieceState[]>(() =>
+    buildSecondGiftPuzzlePieces(),
+  );
+  const [activePuzzlePieceId, setActivePuzzlePieceId] = useState<string | null>(null);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
   const [musicError, setMusicError] = useState(false);
@@ -2650,6 +2971,18 @@ export default function App() {
   const giftBurstButterflies = useMemo(() => buildGiftBurstButterflies(), []);
   const giftAmbientButterflies = useMemo(() => buildGiftAmbientButterflies(), []);
   const giftBirds = useMemo(() => buildGiftBurstBirds(), []);
+  const hiddenKeyBirdId = useMemo(
+    () => giftBirds[Math.floor(Math.random() * giftBirds.length)]?.id ?? giftBirds[0]?.id ?? null,
+    [giftBirds],
+  );
+  const giftBirdReleaseWindow = useMemo(
+    () =>
+      giftBirds.reduce(
+        (maxDuration, bird) => Math.max(maxDuration, bird.releaseDelay + bird.releaseDuration),
+        0,
+      ),
+    [giftBirds],
+  );
   const bouquetHearts = useMemo(() => buildBouquetHearts(performanceProfile), [performanceProfile]);
   const bouquetGlints = useMemo(() => buildBouquetGlints(), []);
   const openingFlowerConfigs = useMemo(
@@ -2688,6 +3021,12 @@ export default function App() {
     giftBoxOpened && (reducedMotion || giftBurstPhase === "burst" || giftBurstPhase === "poem");
   const showGiftBirds =
     phase === "bouquet" && giftBoxOpened && (reducedMotion || giftBurstPhase === "burst" || giftBurstPhase === "poem");
+  const secondGiftSearchActive =
+    phase === "bouquet" &&
+    giftBoxOpened &&
+    secondGiftHintState === "searching" &&
+    !secondGiftUnlocked &&
+    secondGiftKeyAnimationPhase === "hidden";
   const visibleButterflies = useMemo(
     () => (giftCreaturesReleased ? [...butterflies, ...giftAmbientButterflies] : butterflies),
     [butterflies, giftAmbientButterflies, giftCreaturesReleased],
@@ -2786,6 +3125,17 @@ export default function App() {
     setGiftBurstPhase("idle");
     setPoemVisible(false);
     setPoemExpanded(false);
+    setSecondGiftHintState("hidden");
+    setSecondGiftUnlocked(false);
+    setSecondGiftOpened(false);
+    setSecondGiftPuzzleVisible(false);
+    setSecondGiftPuzzleSolved(false);
+    setSecondGiftPuzzleCelebrating(false);
+    setSecondGiftKeyAnimationPhase("hidden");
+    setSecondGiftKeyAnimationGeometry(null);
+    setSecondGiftPuzzlePieces(buildSecondGiftPuzzlePieces());
+    setActivePuzzlePieceId(null);
+    activePuzzleDragRef.current = null;
   }, [phase]);
 
   useEffect(() => {
@@ -2803,7 +3153,7 @@ export default function App() {
       timerId = setTimeout(() => {
         setGiftBurstPhase("poem");
         setPoemVisible(true);
-      }, 2980);
+      }, Math.round((giftBirdReleaseWindow + 0.48) * 1000));
     } else if (giftBurstPhase === "poem") {
       setPoemVisible(true);
     }
@@ -2813,7 +3163,149 @@ export default function App() {
         clearTimeout(timerId);
       }
     };
-  }, [giftBoxOpened, giftBurstPhase, reducedMotion]);
+  }, [giftBirdReleaseWindow, giftBoxOpened, giftBurstPhase, reducedMotion]);
+
+  useEffect(() => {
+    if (secondGiftKeyAnimationPhase === "hidden") {
+      return undefined;
+    }
+
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+
+    if (secondGiftKeyAnimationPhase === "reveal") {
+      timerId = setTimeout(() => {
+        setSecondGiftKeyAnimationPhase("travel");
+      }, reducedMotion ? 220 : 620);
+    } else if (secondGiftKeyAnimationPhase === "travel") {
+      timerId = setTimeout(() => {
+        setSecondGiftKeyAnimationPhase("hidden");
+        setSecondGiftKeyAnimationGeometry(null);
+        setSecondGiftUnlocked(true);
+        setSecondGiftHintState("hidden");
+      }, reducedMotion ? 280 : 860);
+    }
+
+    return () => {
+      if (timerId) {
+        clearTimeout(timerId);
+      }
+    };
+  }, [reducedMotion, secondGiftKeyAnimationPhase]);
+
+  useEffect(() => {
+    if (!secondGiftPuzzleCelebrating) {
+      return undefined;
+    }
+
+    const timerId = setTimeout(() => {
+      setSecondGiftPuzzleCelebrating(false);
+    }, reducedMotion ? 600 : 2400);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [reducedMotion, secondGiftPuzzleCelebrating]);
+
+  useEffect(() => {
+    if (secondGiftPuzzleSolved || secondGiftPuzzlePieces.length === 0) {
+      return;
+    }
+
+    if (secondGiftPuzzlePieces.every((piece) => piece.placed)) {
+      setSecondGiftPuzzleSolved(true);
+      setSecondGiftPuzzleCelebrating(true);
+    }
+  }, [secondGiftPuzzlePieces, secondGiftPuzzleSolved]);
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const drag = activePuzzleDragRef.current;
+
+      if (!drag || event.pointerId !== drag.pointerId) {
+        return;
+      }
+
+      const stageRect = secondGiftPuzzleStageRef.current?.getBoundingClientRect();
+
+      if (!stageRect) {
+        return;
+      }
+
+      const nextX = clamp(event.clientX - stageRect.left - drag.offsetX, 0, Math.max(0, stageRect.width - drag.width));
+      const nextY = clamp(event.clientY - stageRect.top - drag.offsetY, 0, Math.max(0, stageRect.height - drag.height));
+
+      setSecondGiftPuzzlePieces((currentPieces) =>
+        currentPieces.map((piece) =>
+          piece.id === drag.pieceId
+            ? {
+                ...piece,
+                x: (nextX / stageRect.width) * 100,
+                y: (nextY / stageRect.height) * 100,
+              }
+            : piece,
+        ),
+      );
+    };
+
+    const finishDrag = (event: PointerEvent) => {
+      const drag = activePuzzleDragRef.current;
+
+      if (!drag || event.pointerId !== drag.pointerId) {
+        return;
+      }
+
+      const stageRect = secondGiftPuzzleStageRef.current?.getBoundingClientRect();
+      const boardRect = secondGiftPuzzleBoardRef.current?.getBoundingClientRect();
+      let solvedAfterDrop = false;
+
+      if (stageRect && boardRect) {
+        setSecondGiftPuzzlePieces((currentPieces) => {
+          return currentPieces.map((piece) => {
+            if (piece.id !== drag.pieceId || piece.placed) {
+              return piece;
+            }
+
+            const pieceLeft = (piece.x / 100) * stageRect.width;
+            const pieceTop = (piece.y / 100) * stageRect.height;
+            const pieceCenterX = pieceLeft + drag.width / 2;
+            const pieceCenterY = pieceTop + drag.height / 2;
+            const cellSize = boardRect.width / secondGiftPuzzleGridSize;
+            const targetColumn = piece.correctSlot % secondGiftPuzzleGridSize;
+            const targetRow = Math.floor(piece.correctSlot / secondGiftPuzzleGridSize);
+            const targetLeft = boardRect.left - stageRect.left + targetColumn * cellSize;
+            const targetTop = boardRect.top - stageRect.top + targetRow * cellSize;
+            const targetCenterX = targetLeft + cellSize / 2;
+            const targetCenterY = targetTop + cellSize / 2;
+            const shouldSnap = Math.hypot(pieceCenterX - targetCenterX, pieceCenterY - targetCenterY) <= cellSize * 0.42;
+
+            if (!shouldSnap) {
+              return piece;
+            }
+
+            return {
+              ...piece,
+              x: (targetLeft / stageRect.width) * 100,
+              y: (targetTop / stageRect.height) * 100,
+              placed: true,
+            };
+          });
+        });
+      }
+
+      activePuzzleDragRef.current = null;
+      setActivePuzzlePieceId(null);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", finishDrag);
+    window.addEventListener("pointercancel", finishDrag);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", finishDrag);
+      window.removeEventListener("pointercancel", finishDrag);
+    };
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -3500,6 +3992,103 @@ export default function App() {
     setGiftBurstPhase("opening");
   };
 
+  const openSecondGiftBox = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (phase !== "bouquet" || !giftBoxOpened) {
+      return;
+    }
+
+    setNoteOpen(false);
+    setActiveSecretFlowerId(null);
+    setPoemVisible(false);
+    setPoemExpanded(false);
+
+    if (secondGiftUnlocked) {
+      setSecondGiftOpened(true);
+      setSecondGiftPuzzleVisible(true);
+      return;
+    }
+
+    setSecondGiftHintState("searching");
+  };
+
+  const closeSecondGiftPuzzle = () => {
+    activePuzzleDragRef.current = null;
+    setActivePuzzlePieceId(null);
+    setSecondGiftPuzzleVisible(false);
+  };
+
+  const resetSecondGiftPuzzle = () => {
+    activePuzzleDragRef.current = null;
+    setActivePuzzlePieceId(null);
+    setSecondGiftPuzzleSolved(false);
+    setSecondGiftPuzzleCelebrating(false);
+    setSecondGiftPuzzlePieces(buildSecondGiftPuzzlePieces());
+  };
+
+  const handleGiftBirdClick = (event: ReactMouseEvent<HTMLButtonElement>, birdId: string) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!secondGiftSearchActive || birdId !== hiddenKeyBirdId) {
+      return;
+    }
+
+    const lockRect = secondGiftLockRef.current?.getBoundingClientRect();
+    const startX = window.innerWidth * 0.5;
+    const startY = window.innerHeight * 0.46;
+    const endX = lockRect ? lockRect.left + lockRect.width / 2 : window.innerWidth * 0.24;
+    const endY = lockRect ? lockRect.top + lockRect.height / 2 : window.innerHeight * 0.72;
+
+    if (reducedMotion) {
+      setSecondGiftKeyAnimationGeometry({
+        startX,
+        startY,
+        endX,
+        endY,
+      });
+      setSecondGiftKeyAnimationPhase("travel");
+      return;
+    }
+
+    setSecondGiftKeyAnimationGeometry({
+      startX,
+      startY,
+      endX,
+      endY,
+    });
+    setSecondGiftKeyAnimationPhase("reveal");
+  };
+
+  const handlePuzzlePiecePointerDown = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    pieceId: string,
+  ) => {
+    const piece = secondGiftPuzzlePieces.find((currentPiece) => currentPiece.id === pieceId);
+
+    if (!piece || piece.placed || secondGiftPuzzleSolved) {
+      return;
+    }
+
+    event.stopPropagation();
+
+    const target = event.currentTarget;
+    const pieceRect = target.getBoundingClientRect();
+
+    activePuzzleDragRef.current = {
+      pieceId,
+      pointerId: event.pointerId,
+      offsetX: event.clientX - pieceRect.left,
+      offsetY: event.clientY - pieceRect.top,
+      width: pieceRect.width,
+      height: pieceRect.height,
+    };
+
+    setActivePuzzlePieceId(pieceId);
+    target.setPointerCapture(event.pointerId);
+  };
+
   const closeGiftPoem = () => {
     setPoemVisible(false);
     setPoemExpanded(false);
@@ -4168,17 +4757,28 @@ export default function App() {
   };
 
   return (
-    <div
-      className={`site phase-${phase}`}
-      data-interactive={isInteractive}
-      data-performance-profile={performanceProfile}
-      ref={root}
-      onClick={() => {
-        debugLog("site root clicked", { phase, isInteractive });
-        triggerSequence();
-      }}
-      role="presentation"
-    >
+      <div
+        className={`site phase-${phase}`}
+        data-interactive={isInteractive}
+        data-performance-profile={performanceProfile}
+        ref={root}
+        onClick={(event) => {
+          const target = event.target;
+
+          if (
+            target instanceof HTMLElement &&
+            target.closest(
+              "button, [role='button'], [role='dialog'], .gift-poem-overlay, .second-gift-overlay, .note-card-overlay, .secret-flower-note, .second-gift-hint-card",
+            )
+          ) {
+            return;
+          }
+
+          debugLog("site root clicked", { phase, isInteractive });
+          triggerSequence();
+        }}
+        role="presentation"
+      >
       <audio
         ref={audioRef}
         src={backgroundTrack.src}
@@ -4386,6 +4986,16 @@ export default function App() {
         <div className="bouquet-halo" />
         <div className="bouquet-mist" />
         {phase === "bouquet" ? <BirthdayDayOneCard /> : null}
+        {phase === "bouquet" ? (
+          <SecondGiftHintCard
+            visible={giftBoxOpened && secondGiftHintState !== "hidden"}
+            hintState={secondGiftHintState}
+          />
+        ) : null}
+        <SecondGiftKeyAnimation
+          phase={secondGiftKeyAnimationPhase}
+          geometry={secondGiftKeyAnimationGeometry}
+        />
         <div className="bouquet-glints" aria-hidden="true">
           {bouquetGlints.map((glint) => (
             <span
@@ -4404,12 +5014,24 @@ export default function App() {
           ))}
         </div>
         {showGiftBirds ? (
-          <div className="gift-bird-layer" aria-hidden="true">
+          <div className="gift-bird-layer" data-interactive={secondGiftSearchActive}>
             {giftBirds.map((bird) => (
-              <span
+              <button
                 key={bird.id}
+                type="button"
                 className="gift-bird gift-bird--ambient"
                 data-stage={reducedMotion || giftBurstPhase === "poem" ? "ambient" : "release"}
+                data-searching={secondGiftSearchActive}
+                data-key-found={secondGiftUnlocked && bird.id === hiddenKeyBirdId}
+                onClick={(event) => {
+                  handleGiftBirdClick(event, bird.id);
+                }}
+                disabled={!secondGiftSearchActive}
+                aria-label={
+                  secondGiftSearchActive
+                    ? "Check this bird for the hidden key"
+                    : "Bird circling above the bouquet"
+                }
                 style={
                   {
                     left: `${bird.left}%`,
@@ -4435,7 +5057,7 @@ export default function App() {
                 <span className="gift-bird__motion">
                   <span className="gift-bird__float">{renderGiftBird(bird)}</span>
                 </span>
-              </span>
+              </button>
             ))}
           </div>
         ) : null}
@@ -4477,6 +5099,22 @@ export default function App() {
             onOpen={openGiftBox}
           />
         ) : null}
+        {phase === "bouquet" ? (
+          <GiftBox
+            opened={secondGiftOpened}
+            burstPhase={secondGiftOpened ? "burst" : "idle"}
+            reducedMotion={reducedMotion}
+            burstButterflies={giftBurstButterflies}
+            onOpen={openSecondGiftBox}
+            variant="second"
+            locked={!secondGiftUnlocked}
+            disabled={!giftBoxOpened}
+            labelClosed="Open the locked gift box"
+            labelOpened="Open the flower puzzle"
+            showBurst={false}
+            lockRef={secondGiftLockRef}
+          />
+        ) : null}
         <NoteCard
           noteRef={noteCardRef}
           glowRef={noteGlowRef}
@@ -4500,6 +5138,18 @@ export default function App() {
           setPoemExpanded((current) => !current);
         }}
         onClose={closeGiftPoem}
+      />
+      <SecondGiftPuzzleOverlay
+        visible={secondGiftPuzzleVisible}
+        solved={secondGiftPuzzleSolved}
+        celebrating={secondGiftPuzzleCelebrating}
+        pieces={secondGiftPuzzlePieces}
+        activePieceId={activePuzzlePieceId}
+        stageRef={secondGiftPuzzleStageRef}
+        boardRef={secondGiftPuzzleBoardRef}
+        onPiecePointerDown={handlePuzzlePiecePointerDown}
+        onReset={resetSecondGiftPuzzle}
+        onClose={closeSecondGiftPuzzle}
       />
 
       <button
