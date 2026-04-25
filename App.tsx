@@ -329,7 +329,7 @@ const backgroundTrack: MusicTrack = {
 const secretFlowerId = "f-2";
 const secretFlowerNotes: Record<string, SecretNoteCopy> = {
   [secretFlowerId]: {
-    body: "You are the most beautiful flower in the world. I know this very wellğŸ’œ .",
+    body: "You are the most beautiful flower in the world. I know this very well.",
   },
   "f-11": {
     body: "Some flowers bloom only for one person.",
@@ -337,7 +337,7 @@ const secretFlowerNotes: Record<string, SecretNoteCopy> = {
 };
 
 const secretNote: SecretNoteCopy = {
-  body: "You are the most beautiful flower in the world. I know this very well💜 .",
+  body: "You are the most beautiful flower in the world. I know this very well.",
 };
 
 function buildPollen(profile: PerformanceProfile) {
