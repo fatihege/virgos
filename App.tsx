@@ -133,12 +133,21 @@ type GiftBurstBird = {
   releaseDelay: number;
   driftX: number;
   driftY: number;
+  loopFromX: number;
+  loopToX: number;
   flightDuration: number;
   driftDuration: number;
   wingDuration: number;
   delay: number;
   scale: number;
   palette: GiftBirdPalette;
+};
+
+type WrongBirdPopupState = {
+  id: number;
+  message: string;
+  left: number;
+  top: number;
 };
 
 type SecondGiftHintState = "hidden" | "searching" | "found";
@@ -443,8 +452,19 @@ const giftPoemPreviewLineCount = 7;
 const giftPoemPreview = giftPoemLines.slice(0, giftPoemPreviewLineCount).join("\n");
 const giftPoemFull = giftPoemLines.join("\n");
 const birthdayDayOneCardMessage = "Happy second day of your new year.";
-const secondGiftHintMessage = "Kucuk anahtar kuslardan birinde sakli.";
+const secondGiftHintMessage = "Anahtar kuşlardan birinde saklı.";
 const secondGiftFoundMessage = "Anahtari buldun. Kutu simdi acilabilir.";
+const wrongBirdMessages = [
+  "Yanlış kuşu seçtin, ama niyetin çok hoş",
+  "Bu yanlış seçim, ama sana hiç kızamıyorum",
+  "Olmadı... ama vazgeçme, güzel gidiyorsun.",
+  "Yanlış kuş... biraz daha yaklaş hadi.",
+  "Yanlış ama tatlı bir hamle.",
+  "Bu kuşun işi gücü dikkat çekmek galiba.",
+  "Bu kuş sadece sevimlilik yapıyor.",
+  "Bunu saymıyorum, tekrar dene.",
+  "Bu kuş senden etkilenmiş olabilir.",
+] as const;
 const secondGiftPuzzleGridSize = 3;
 const secondGiftPuzzleTotalPieces = secondGiftPuzzleGridSize * secondGiftPuzzleGridSize;
 
@@ -1502,16 +1522,16 @@ const giftBirdPalettes: GiftBirdPalette[] = [
 
 function buildGiftBurstBirds(): GiftBurstBird[] {
   return [
-    { id: "gift-bird-1", left: 14, top: 14, size: 44, rotate: -11, releaseX: "44vw", releaseY: "36vh", releaseDuration: 4.8, releaseDelay: 0.08, driftX: 1.8, driftY: -0.28, flightDuration: 30.4, driftDuration: 7.2, wingDuration: 1.56, delay: -1.6, scale: 0.94, palette: giftBirdPalettes[0] },
-    { id: "gift-bird-2", left: 22, top: 20, size: 42, rotate: 7, releaseX: "36vw", releaseY: "32vh", releaseDuration: 5.02, releaseDelay: 0.24, driftX: -1.7, driftY: -0.24, flightDuration: 31.2, driftDuration: 7.8, wingDuration: 1.64, delay: -2.4, scale: 0.92, palette: giftBirdPalettes[1] },
-    { id: "gift-bird-3", left: 30, top: 15, size: 43, rotate: -8, releaseX: "30vw", releaseY: "35vh", releaseDuration: 5.18, releaseDelay: 0.42, driftX: 1.95, driftY: -0.3, flightDuration: 32, driftDuration: 7.4, wingDuration: 1.54, delay: -0.8, scale: 0.95, palette: giftBirdPalettes[2] },
-    { id: "gift-bird-4", left: 38, top: 21, size: 41, rotate: 6, releaseX: "22vw", releaseY: "31vh", releaseDuration: 5.32, releaseDelay: 0.58, driftX: -1.85, driftY: -0.22, flightDuration: 31.6, driftDuration: 7.9, wingDuration: 1.62, delay: -3.4, scale: 0.92, palette: giftBirdPalettes[3] },
-    { id: "gift-bird-5", left: 46, top: 16, size: 45, rotate: -5, releaseX: "15vw", releaseY: "34vh", releaseDuration: 5.46, releaseDelay: 0.74, driftX: 1.7, driftY: -0.26, flightDuration: 30.9, driftDuration: 7.1, wingDuration: 1.5, delay: -1.2, scale: 0.96, palette: giftBirdPalettes[4] },
-    { id: "gift-bird-6", left: 54, top: 21, size: 44, rotate: 5, releaseX: "7vw", releaseY: "30vh", releaseDuration: 5.6, releaseDelay: 0.9, driftX: -1.8, driftY: -0.2, flightDuration: 32.4, driftDuration: 8, wingDuration: 1.68, delay: -2.7, scale: 0.95, palette: giftBirdPalettes[1] },
-    { id: "gift-bird-7", left: 62, top: 15, size: 42, rotate: -7, releaseX: "0vw", releaseY: "33vh", releaseDuration: 5.72, releaseDelay: 1.06, driftX: 1.9, driftY: -0.28, flightDuration: 31.1, driftDuration: 7.3, wingDuration: 1.56, delay: -0.9, scale: 0.93, palette: giftBirdPalettes[2] },
-    { id: "gift-bird-8", left: 70, top: 20, size: 44, rotate: 8, releaseX: "-8vw", releaseY: "29vh", releaseDuration: 5.86, releaseDelay: 1.22, driftX: -2.05, driftY: -0.22, flightDuration: 32.8, driftDuration: 7.9, wingDuration: 1.66, delay: -3.1, scale: 0.96, palette: giftBirdPalettes[0] },
-    { id: "gift-bird-9", left: 78, top: 15, size: 43, rotate: -6, releaseX: "-16vw", releaseY: "32vh", releaseDuration: 6.02, releaseDelay: 1.38, driftX: 1.75, driftY: -0.24, flightDuration: 30.7, driftDuration: 7.2, wingDuration: 1.54, delay: -1.8, scale: 0.94, palette: giftBirdPalettes[3] },
-    { id: "gift-bird-10", left: 86, top: 20, size: 45, rotate: 7, releaseX: "-24vw", releaseY: "28vh", releaseDuration: 6.18, releaseDelay: 1.54, driftX: -1.9, driftY: -0.2, flightDuration: 31.9, driftDuration: 7.7, wingDuration: 1.62, delay: -4.2, scale: 0.97, palette: giftBirdPalettes[4] },
+    { id: "gift-bird-1", left: 16, top: 16, size: 44, rotate: -8, releaseX: "44vw", releaseY: "36vh", releaseDuration: 2.46, releaseDelay: 0.08, driftX: 0.24, driftY: -0.14, loopFromX: -34, loopToX: 88, flightDuration: 34.4, driftDuration: 3.8, wingDuration: 1.56, delay: -1.6, scale: 0.94, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-2", left: 24, top: 19, size: 42, rotate: -5, releaseX: "36vw", releaseY: "32vh", releaseDuration: 2.62, releaseDelay: 0.22, driftX: 0.18, driftY: -0.16, loopFromX: -28, loopToX: 94, flightDuration: 35.8, driftDuration: 4.1, wingDuration: 1.64, delay: -5.4, scale: 0.92, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-3", left: 32, top: 15, size: 43, rotate: -9, releaseX: "30vw", releaseY: "35vh", releaseDuration: 2.74, releaseDelay: 0.34, driftX: 0.22, driftY: -0.12, loopFromX: -40, loopToX: 82, flightDuration: 33.1, driftDuration: 3.4, wingDuration: 1.54, delay: -9.2, scale: 0.95, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-4", left: 40, top: 20, size: 41, rotate: -4, releaseX: "22vw", releaseY: "31vh", releaseDuration: 2.84, releaseDelay: 0.46, driftX: 0.19, driftY: -0.15, loopFromX: -32, loopToX: 90, flightDuration: 36.2, driftDuration: 3.9, wingDuration: 1.62, delay: -2.8, scale: 0.92, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-5", left: 48, top: 17, size: 45, rotate: -7, releaseX: "15vw", releaseY: "34vh", releaseDuration: 2.92, releaseDelay: 0.58, driftX: 0.26, driftY: -0.1, loopFromX: -44, loopToX: 78, flightDuration: 32.7, driftDuration: 3.2, wingDuration: 1.5, delay: -12.4, scale: 0.96, palette: giftBirdPalettes[4] },
+    { id: "gift-bird-6", left: 56, top: 21, size: 44, rotate: -3, releaseX: "7vw", releaseY: "30vh", releaseDuration: 3.02, releaseDelay: 0.72, driftX: 0.17, driftY: -0.08, loopFromX: -30, loopToX: 92, flightDuration: 34.1, driftDuration: 3.7, wingDuration: 1.68, delay: -7.1, scale: 0.95, palette: giftBirdPalettes[1] },
+    { id: "gift-bird-7", left: 64, top: 18, size: 42, rotate: -6, releaseX: "0vw", releaseY: "33vh", releaseDuration: 3.08, releaseDelay: 0.84, driftX: 0.23, driftY: -0.14, loopFromX: -38, loopToX: 84, flightDuration: 36.8, driftDuration: 4, wingDuration: 1.56, delay: -3.7, scale: 0.93, palette: giftBirdPalettes[2] },
+    { id: "gift-bird-8", left: 72, top: 22, size: 44, rotate: -2, releaseX: "-8vw", releaseY: "29vh", releaseDuration: 3.14, releaseDelay: 0.96, driftX: 0.2, driftY: -0.18, loopFromX: -26, loopToX: 96, flightDuration: 33.5, driftDuration: 3.5, wingDuration: 1.66, delay: -10.6, scale: 0.96, palette: giftBirdPalettes[0] },
+    { id: "gift-bird-9", left: 80, top: 16, size: 43, rotate: -5, releaseX: "-16vw", releaseY: "32vh", releaseDuration: 3.22, releaseDelay: 1.08, driftX: 0.16, driftY: -0.1, loopFromX: -42, loopToX: 73, flightDuration: 35.1, driftDuration: 3.8, wingDuration: 1.54, delay: -14.2, scale: 0.94, palette: giftBirdPalettes[3] },
+    { id: "gift-bird-10", left: 88, top: 20, size: 45, rotate: -4, releaseX: "-24vw", releaseY: "28vh", releaseDuration: 3.3, releaseDelay: 1.18, driftX: 0.18, driftY: -0.12, loopFromX: -30, loopToX: 98, flightDuration: 37.4, driftDuration: 4.2, wingDuration: 1.62, delay: -0.9, scale: 0.97, palette: giftBirdPalettes[4] },
   ];
 }
 
@@ -2349,6 +2369,32 @@ function SecondGiftHintCard({
   );
 }
 
+function WrongBirdPopup({
+  popup,
+}: {
+  popup: WrongBirdPopupState | null;
+}) {
+  if (!popup) {
+    return null;
+  }
+
+  return (
+    <div
+      className="wrong-bird-popup"
+      role="status"
+      aria-live="polite"
+      style={
+        {
+          left: `${popup.left}px`,
+          top: `${popup.top}px`,
+        } as CSSProperties
+      }
+    >
+      <span className="wrong-bird-popup__bubble">{popup.message}</span>
+    </div>
+  );
+}
+
 function SecondGiftKeyAnimation({
   phase,
   geometry,
@@ -2927,7 +2973,7 @@ export default function App() {
   const secondGiftPuzzleStageRef = useRef<HTMLDivElement>(null);
   const secondGiftPuzzleBoardRef = useRef<HTMLDivElement>(null);
   const activePuzzleDragRef = useRef<ActivePuzzleDrag | null>(null);
-  const musicAutoplayArmedRef = useRef(true);
+  const musicAutoplayArmedRef = useRef(false);
   const noteReadyRef = useRef(false);
   const noteAnimatingRef = useRef(false);
   const [phase, setPhase] = useState<Phase>("intro");
@@ -2952,6 +2998,8 @@ export default function App() {
     buildSecondGiftPuzzlePieces(),
   );
   const [activePuzzlePieceId, setActivePuzzlePieceId] = useState<string | null>(null);
+  const [wrongBirdPopup, setWrongBirdPopup] = useState<WrongBirdPopupState | null>(null);
+  const [checkedBirdIds, setCheckedBirdIds] = useState<string[]>([]);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [musicReady, setMusicReady] = useState(false);
   const [musicError, setMusicError] = useState(false);
@@ -2965,6 +3013,9 @@ export default function App() {
   const previousReducedMotionRef = useRef(reducedMotion);
   const previousPerformanceProfileRef = useRef(performanceProfile);
   const previousOpeningStageSizeRef = useRef(openingStageSize);
+  const wrongBirdMessageIndexRef = useRef(0);
+  const wrongBirdPopupIdRef = useRef(0);
+  const [giftBirdLoopActive, setGiftBirdLoopActive] = useState(false);
 
   const pollen = useMemo(() => buildPollen(performanceProfile), [performanceProfile]);
   const butterflies = useMemo(() => buildButterflies(performanceProfile), [performanceProfile]);
@@ -3133,6 +3184,9 @@ export default function App() {
     setSecondGiftPuzzleCelebrating(false);
     setSecondGiftKeyAnimationPhase("hidden");
     setSecondGiftKeyAnimationGeometry(null);
+    setCheckedBirdIds([]);
+    setWrongBirdPopup(null);
+    setGiftBirdLoopActive(false);
     setSecondGiftPuzzlePieces(buildSecondGiftPuzzlePieces());
     setActivePuzzlePieceId(null);
     activePuzzleDragRef.current = null;
@@ -3153,7 +3207,7 @@ export default function App() {
       timerId = setTimeout(() => {
         setGiftBurstPhase("poem");
         setPoemVisible(true);
-      }, Math.round((giftBirdReleaseWindow + 0.48) * 1000));
+      }, 980);
     } else if (giftBurstPhase === "poem") {
       setPoemVisible(true);
     }
@@ -3163,7 +3217,22 @@ export default function App() {
         clearTimeout(timerId);
       }
     };
-  }, [giftBirdReleaseWindow, giftBoxOpened, giftBurstPhase, reducedMotion]);
+  }, [giftBoxOpened, giftBurstPhase, reducedMotion]);
+
+  useEffect(() => {
+    if (!giftBoxOpened || reducedMotion) {
+      setGiftBirdLoopActive(reducedMotion && giftBoxOpened);
+      return undefined;
+    }
+
+    const timerId = setTimeout(() => {
+      setGiftBirdLoopActive(true);
+    }, 520 + Math.round(giftBirdReleaseWindow * 1000));
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [giftBirdReleaseWindow, giftBoxOpened, reducedMotion]);
 
   useEffect(() => {
     if (secondGiftKeyAnimationPhase === "hidden") {
@@ -3216,6 +3285,28 @@ export default function App() {
       setSecondGiftPuzzleCelebrating(true);
     }
   }, [secondGiftPuzzlePieces, secondGiftPuzzleSolved]);
+
+  useEffect(() => {
+    if (!wrongBirdPopup) {
+      return undefined;
+    }
+
+    const timerId = setTimeout(() => {
+      setWrongBirdPopup(null);
+    }, 2400);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [wrongBirdPopup]);
+
+  useEffect(() => {
+    if (secondGiftSearchActive) {
+      return;
+    }
+
+    setWrongBirdPopup(null);
+  }, [secondGiftSearchActive]);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -3317,42 +3408,11 @@ export default function App() {
 
     audio.volume = 0.22;
     audio.loop = true;
-    void audio.play().catch((error) => {
-      debugLog("background track initial autoplay failed", {
-        message: error instanceof Error ? error.message : "unknown initial autoplay failure",
-      });
-    });
 
     return () => {
       audio.pause();
     };
   }, []);
-
-  useEffect(() => {
-    const tryAutoplay = () => {
-      if (!musicAutoplayArmedRef.current || musicPlaying || musicError) {
-        return;
-      }
-
-      const audio = audioRef.current;
-
-      if (!audio) {
-        return;
-      }
-
-      void audio.play().catch((error) => {
-        debugLog("background track autoplay failed", {
-          message: error instanceof Error ? error.message : "unknown autoplay failure",
-        });
-      });
-    };
-
-    window.addEventListener("pointerdown", tryAutoplay, true);
-
-    return () => {
-      window.removeEventListener("pointerdown", tryAutoplay, true);
-    };
-  }, [musicError, musicPlaying]);
 
   useLayoutEffect(() => {
     const sceneElement = openingSceneRef.current;
@@ -4031,9 +4091,29 @@ export default function App() {
     event.stopPropagation();
     event.preventDefault();
 
-    if (!secondGiftSearchActive || birdId !== hiddenKeyBirdId) {
+    if (!secondGiftSearchActive || checkedBirdIds.includes(birdId)) {
       return;
     }
+
+    if (birdId !== hiddenKeyBirdId) {
+      const message = wrongBirdMessages[wrongBirdMessageIndexRef.current % wrongBirdMessages.length];
+      const birdRect = event.currentTarget.getBoundingClientRect();
+      const popupLeft = clamp(birdRect.left + birdRect.width / 2, 110, window.innerWidth - 110);
+      const popupTop = clamp(birdRect.top - 14, 96, window.innerHeight - 56);
+
+      wrongBirdMessageIndexRef.current += 1;
+      wrongBirdPopupIdRef.current += 1;
+      setWrongBirdPopup({
+        id: wrongBirdPopupIdRef.current,
+        message,
+        left: popupLeft,
+        top: popupTop,
+      });
+      setCheckedBirdIds((currentIds) => [...currentIds, birdId]);
+      return;
+    }
+
+    setWrongBirdPopup(null);
 
     const lockRect = secondGiftLockRef.current?.getBoundingClientRect();
     const startX = window.innerWidth * 0.5;
@@ -4782,22 +4862,10 @@ export default function App() {
       <audio
         ref={audioRef}
         src={backgroundTrack.src}
-        autoPlay
         preload="auto"
         onCanPlay={() => {
           setMusicReady(true);
           setMusicError(false);
-          if (musicAutoplayArmedRef.current && !musicPlaying) {
-            const audio = audioRef.current;
-
-            if (audio) {
-              void audio.play().catch((error) => {
-                debugLog("background track ready autoplay failed", {
-                  message: error instanceof Error ? error.message : "unknown ready autoplay failure",
-                });
-              });
-            }
-          }
         }}
         onPlay={() => {
           musicAutoplayArmedRef.current = false;
@@ -4992,6 +5060,7 @@ export default function App() {
             hintState={secondGiftHintState}
           />
         ) : null}
+        <WrongBirdPopup popup={wrongBirdPopup} />
         <SecondGiftKeyAnimation
           phase={secondGiftKeyAnimationPhase}
           geometry={secondGiftKeyAnimationGeometry}
@@ -5020,17 +5089,20 @@ export default function App() {
                 key={bird.id}
                 type="button"
                 className="gift-bird gift-bird--ambient"
-                data-stage={reducedMotion || giftBurstPhase === "poem" ? "ambient" : "release"}
+                data-stage={reducedMotion || giftBirdLoopActive ? "ambient" : "release"}
                 data-searching={secondGiftSearchActive}
+                data-checked={checkedBirdIds.includes(bird.id)}
                 data-key-found={secondGiftUnlocked && bird.id === hiddenKeyBirdId}
                 onClick={(event) => {
                   handleGiftBirdClick(event, bird.id);
                 }}
-                disabled={!secondGiftSearchActive}
+                disabled={!secondGiftSearchActive || checkedBirdIds.includes(bird.id)}
                 aria-label={
-                  secondGiftSearchActive
+                  secondGiftSearchActive && !checkedBirdIds.includes(bird.id)
                     ? "Check this bird for the hidden key"
-                    : "Bird circling above the bouquet"
+                    : checkedBirdIds.includes(bird.id)
+                      ? "This bird has already been checked"
+                      : "Bird circling above the bouquet"
                 }
                 style={
                   {
@@ -5046,16 +5118,21 @@ export default function App() {
                     "--gift-bird-release-delay": `${bird.releaseDelay}s`,
                     "--gift-bird-flight-x": `${bird.driftX}vw`,
                     "--gift-bird-flight-y": `${bird.driftY}vh`,
+                    "--gift-bird-loop-from-x": `${bird.loopFromX}vw`,
+                    "--gift-bird-loop-to-x": `${bird.loopToX}vw`,
                     "--gift-bird-flight-duration": `${bird.flightDuration}s`,
                     "--gift-bird-drift-duration": `${bird.driftDuration}s`,
                     "--gift-bird-wing-duration": `${bird.wingDuration}s`,
                     "--gift-bird-delay": `${bird.delay}s`,
+                    "--gift-bird-direction": bird.loopToX > bird.loopFromX ? 1 : -1,
                     "--gift-bird-shadow-color": bird.palette.shadowColor,
                   } as CSSProperties
                 }
               >
                 <span className="gift-bird__motion">
-                  <span className="gift-bird__float">{renderGiftBird(bird)}</span>
+                  <span className="gift-bird__art">
+                    <span className="gift-bird__float">{renderGiftBird(bird)}</span>
+                  </span>
                 </span>
               </button>
             ))}

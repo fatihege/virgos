@@ -467,7 +467,7 @@ select {
 
 .gift-bird-layer {
   position: absolute;
-  inset: -4% -16% 24% -16%;
+  inset: -4% -12% 24% -12%;
   z-index: 89;
   overflow: visible;
   pointer-events: none;
@@ -498,11 +498,23 @@ select {
   cursor: default;
 }
 
+.gift-bird--ambient[data-checked="true"] {
+  opacity: 0.5;
+  filter: saturate(0.78) brightness(0.96)
+    drop-shadow(0 8px 14px var(--gift-bird-shadow-color, rgba(176, 110, 122, 0.12)));
+}
+
 .gift-bird__motion,
+.gift-bird__art,
 .gift-bird--ambient .gift-bird__float {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.gift-bird__art {
+  transform: scaleX(var(--gift-bird-direction, 1));
+  transform-origin: 50% 50%;
 }
 
 .gift-bird--ambient[data-stage="release"] {
@@ -513,12 +525,12 @@ select {
 
 .gift-bird--ambient[data-stage="ambient"] {
   opacity: 0.88;
-  animation: gift-bird-flight var(--gift-bird-flight-duration, 31s) ease-in-out infinite alternate;
+  animation: gift-bird-flight var(--gift-bird-flight-duration, 35s) linear infinite;
   animation-delay: var(--gift-bird-delay, 0s);
 }
 
 .gift-bird--ambient[data-stage="ambient"] .gift-bird__float {
-  animation: gift-bird-drift var(--gift-bird-drift-duration, 7.4s) ease-in-out infinite;
+  animation: gift-bird-drift var(--gift-bird-drift-duration, 3.8s) ease-in-out infinite;
   animation-delay: var(--gift-bird-delay, 0s);
 }
 
@@ -602,6 +614,59 @@ select {
   font-size: clamp(0.84rem, 1.4vw, 0.96rem);
   line-height: 1.45;
   color: rgba(98, 73, 79, 0.94);
+}
+
+.wrong-bird-popup {
+  position: fixed;
+  z-index: 214;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  animation: wrong-bird-popup-enter 240ms ease-out both;
+}
+
+.wrong-bird-popup__bubble {
+  position: relative;
+  display: block;
+  max-width: min(17rem, calc(100vw - 2rem));
+  padding: 0.72rem 0.9rem;
+  border: 1px solid rgba(229, 206, 188, 0.96);
+  border-radius: 0.95rem;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.8), transparent 22%),
+    radial-gradient(circle at 84% 24%, rgba(255, 225, 234, 0.34), transparent 24%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(246, 236, 226, 0.96));
+  box-shadow:
+    0 18px 28px rgba(156, 121, 114, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  font-size: clamp(0.78rem, 1.2vw, 0.9rem);
+  line-height: 1.45;
+  color: rgba(100, 73, 79, 0.96);
+  text-wrap: balance;
+}
+
+.wrong-bird-popup__bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.45rem;
+  width: 0.88rem;
+  height: 0.88rem;
+  background: rgba(246, 236, 226, 0.98);
+  border-right: 1px solid rgba(229, 206, 188, 0.96);
+  border-bottom: 1px solid rgba(229, 206, 188, 0.96);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+@keyframes wrong-bird-popup-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(0.4rem) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .second-gift-key-animation {
@@ -1366,33 +1431,41 @@ select {
 
 @keyframes gift-bird-flight {
   0% {
-    opacity: 0.82;
+    opacity: 0;
     transform:
       translate(-50%, -50%)
-      translate3d(0, 0, 0)
+      translate3d(var(--gift-bird-loop-from-x, -40vw), calc(var(--gift-bird-flight-y, -0.2vh) + 0.3vh), 0)
       rotate(var(--gift-bird-rotate, 0deg))
       scale(var(--gift-bird-scale, 1));
   }
 
+  12% {
+    opacity: 0.88;
+  }
+
   50% {
-    opacity: 0.96;
+    opacity: 0.94;
     transform:
       translate(-50%, -50%)
       translate3d(
-        calc(var(--gift-bird-flight-x, 3vw) * 0.55),
-        calc(var(--gift-bird-flight-y, -0.35vh) * 0.58),
+        calc((var(--gift-bird-loop-from-x, -40vw) + var(--gift-bird-loop-to-x, 40vw)) / 2),
+        calc(var(--gift-bird-flight-y, -0.2vh) - 0.38vh),
         0
       )
-      rotate(calc(var(--gift-bird-rotate, 0deg) + 2deg))
+      rotate(calc(var(--gift-bird-rotate, 0deg) + 1deg))
       scale(calc(var(--gift-bird-scale, 1) * 1.02));
   }
 
+  88% {
+    opacity: 0.88;
+  }
+
   100% {
-    opacity: 0.84;
+    opacity: 0;
     transform:
       translate(-50%, -50%)
-      translate3d(var(--gift-bird-flight-x, 3vw), var(--gift-bird-flight-y, -0.35vh), 0)
-      rotate(calc(var(--gift-bird-rotate, 0deg) - 2deg))
+      translate3d(var(--gift-bird-loop-to-x, 40vw), calc(var(--gift-bird-flight-y, -0.2vh) + 0.14vh), 0)
+      rotate(calc(var(--gift-bird-rotate, 0deg) - 1deg))
       scale(var(--gift-bird-scale, 1));
   }
 }
@@ -3631,6 +3704,7 @@ select {
   }
 
   .gift-bird--ambient,
+  .gift-bird__art,
   .gift-bird--ambient .gift-bird__float,
   .gift-bird__wings {
     animation: none !important;
@@ -3643,6 +3717,7 @@ select {
   .second-gift-key-animation,
   .second-gift-key-animation__icon-shell,
   .second-gift-key-animation__halo,
+  .wrong-bird-popup,
   .second-gift-overlay__title[data-visible="true"],
   .second-gift-puzzle__board[data-solved="true"],
   .second-gift-puzzle__final-image,
